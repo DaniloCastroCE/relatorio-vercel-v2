@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="./img/favicon.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Danilo Castro CE">
+  <title>Login</title>
+  <link rel="stylesheet" href="./css/info.css">
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/footer.css">
+
+</head>
+
+<body>
+  <% if (status) { %>
+    <div class="info <%=status%>">
+      <p>
+        <%=message%>
+      </p>
+    </div>
+    <% } else { %>
+      <div class="info"></div>
+      <% } %>
+
+        <main>
+          <section class="loading display-none">
+            <div class="loading-content">
+              <img src="../img/dog-loading.gif" alt="dog loading">
+              <p>Aguarde . . .</p>
+            </div>
+          </section>
+
+          <section class="container-login">
+            <div class="form-container">
+              <form class="form-login" action="/login" method="post" onsubmit="abrirModal()">
+                <h1>LOGIN</h1>
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input type="email" name="email" id="email">
+                </div>
+                <div class="form-group">
+                  <label for="senha">Senha</label>
+                  <input type="password" name="senha" id="senha">
+                </div>
+                <div class="form-actions">
+                  <button type="submit">Logar</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+        </main>
+        <footer>Desenvolvido por: @DaniloCastroCE (2025)</footer>
+        <script src="./js/loading.js"></script>
+        <script src="./js/info.js"></script>
+        <script src="./js/main-login.js"></script>
+</body>
+
+</html>

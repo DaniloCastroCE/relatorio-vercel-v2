@@ -1,0 +1,38 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100vh;
+    background-color: #f5f5f5;
+    color: #333;
+    font-family: ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica, Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.display-none {
+    display: none !important;
+}
+
+.no-select {
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+input:disabled {
+    background-color: #eee;
+    color: #888;
+    cursor: not-allowed;
+}
