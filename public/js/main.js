@@ -19,7 +19,7 @@ const getUser = async () => {
         save: result.user.save,
       }
       console.log(usuario)
-      console.log(result.user)
+      console.log(result.dados_relatorio)
     }
 
   } catch (err) {
