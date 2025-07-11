@@ -19,7 +19,7 @@ const getUser = async () => {
         dia_relatorio: new Date(result.user.date_online).toISOString().split('T')[0],
         save: result.user.save,
       }
-      
+      console.log(usuario)
       if(result.dados_relatorio) {
           usuario.plantao = result.dados_relatorio.nome_plantao
           usuario.dia_relatorio = new Date(result.dados_relatorio.dia_plantao).toISOString().split('T')[0]
