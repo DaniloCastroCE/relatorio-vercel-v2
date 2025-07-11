@@ -163,7 +163,7 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
   const temp_id = req.session.user._id_temp
   try {
 
-    if (!req.session.user.save) {
+    if (req.session.user.save === "no-salvo") {
       const temp = await Temp.findById(temp_id).populate('itens')
 
       if (temp && temp.itens && temp.itens.length > 0) {
