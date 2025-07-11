@@ -428,7 +428,7 @@ const getAllOS_part = (status, result, error) => {
         <div class="controlBtns form-actions ">
           <!--<button type="button" onclick="copyListPrevious()">Copiar</button>-->
           <button type="button" onclick="salvarRelatorio()">Salvar</button>
-          <button type="button" onclick="limparList()">Limpar</button>
+          <button type="button" onclick="limparList()">Novo</button>
         </div>
       </div>
     </div>
@@ -769,6 +769,7 @@ const createOS = async (e) => {
     console.log(data.message);
     if (data.status === "success") form.reset();
     addItemToListPrevious("formInputs");
+    getUser()
     loading("close");
 
     addCountItensToLogo("+");
@@ -1006,7 +1007,7 @@ const limparList = async () => {
   if (usuario.save === 'no-salvo') {
     textSave = `\n 
     ❗OBS: Identifiquei que você não salvou a lista.❗\n
-    Se apertar em "OK", não vai conseguir recuperar a lista ! \n`
+    Se apertar em "OK", não vai conseguir recuperar a lista de OS atual! \n`
 
   } else if (usuario.save === "atualizar") {
     textSave = `\n 
@@ -1014,7 +1015,7 @@ const limparList = async () => {
     Se apertar em "OK", vai perder o restante da lista que você ainda não salvou ! \n`
   }
 
-  if (!confirm(`⚠️ Tem certeza que deseja limpar lista de OS? ⚠️${textSave}`)) return;
+  if (!confirm(`⚠️ Tem certeza que deseja deletar a lista de OS atual para criar uma nova ? ⚠️${textSave}`)) return;
   loading("open");
 
   try {
