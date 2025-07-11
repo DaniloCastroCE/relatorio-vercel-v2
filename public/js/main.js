@@ -9,6 +9,7 @@ const getUser = async () => {
     if (result.status === 'success') {
       document.querySelector('#user-nome').textContent = formatName.type_one(result.user.nome)
       document.querySelector('#user-email').textContent = result.user.email
+    
       usuario = {
         _id: result.user._id,
         nome: result.user.nome,
@@ -18,8 +19,11 @@ const getUser = async () => {
         dia_relatorio: new Date(result.user.date_online).toISOString().split('T')[0],
         save: result.user.save,
       }
-      console.log(usuario)
-      console.log(result.dados_relatorio)
+      
+      if(result.dados_relatorio) {
+          usuario.plantao = result.dados_relatorio.nome_plantao
+          usuario.dia_relatorio = new Date(result.dados_relatorio.dia_plantao).toISOString().split('T')[0]
+      }
     }
 
   } catch (err) {
