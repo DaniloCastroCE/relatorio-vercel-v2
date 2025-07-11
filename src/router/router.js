@@ -26,7 +26,7 @@ router.get("/", (req, res) => {
   return res.render('login', { status: null, message: null })
 })
 
-router.get("/getUser", checkAuth, (req, res) => {
+router.get("/getUser", checkAuth, async (req, res) => {
 
   if (!req.session.user) {
     return res.status(401).json({
@@ -35,9 +35,22 @@ router.get("/getUser", checkAuth, (req, res) => {
     });
   }
 
+  let dados_relatorio = null
+  try {
+    const relatorio =  await Relatorio.findOne({temp_id: req.session.user._id_temp})
+    dados_relatorio = {
+      dia_plantao, nome_plantao
+    }
+    
+  }catch(err){
+    console.error(err.message)
+  }
+
   return res.status(200).json({
     status: "success",
-    user: req.session.user
+    user: req.session.user,
+    dados_relatorio: dados_relatorio,
+    
   })
 })
 
