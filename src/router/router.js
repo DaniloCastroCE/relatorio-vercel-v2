@@ -36,17 +36,24 @@ router.get("/getUser", checkAuth, async (req, res) => {
   }
 
   let dados_relatorio = null
+  let user = null
   try {
     const relatorio =  await Relatorio.findOne({temp_id: req.session.user._id_temp})
     dados_relatorio = {
       dia_plantao: relatorio.dia_plantao, 
       nome_plantao: relatorio.nome_plantao
     }
+
+    user = await User.findById(req.session.user._id)
     
   }catch(err){
     console.error(err.message)
   }
 
+  if(!dados_relatorio && user) {
+    req.session.user.plantao = user.plantao
+  }
+  
   return res.status(200).json({
     status: "success",
     user: req.session.user,
