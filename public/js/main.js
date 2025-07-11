@@ -24,6 +24,7 @@ const getUser = async () => {
           usuario.plantao = result.dados_relatorio.nome_plantao
           usuario.dia_relatorio = new Date(result.dados_relatorio.dia_plantao).toISOString().split('T')[0]
       }
+      console.log(usuario)
     }
 
   } catch (err) {
