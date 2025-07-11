@@ -19,6 +19,7 @@ const getUser = async () => {
         save: result.user.save,
       }
       console.log(usuario)
+      console.log(result.user)
     }
 
   } catch (err) {
