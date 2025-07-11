@@ -46,15 +46,14 @@ router.get("/getUser", checkAuth, async (req, res) => {
         nome_plantao: relatorio.nome_plantao
       }
     }
-
     user = await User.findById(req.session.user._id)
+    
+    if(!dados_relatorio && user) {
+      req.session.user.plantao = user.plantao
+    }
     
   }catch(err){
     console.error(err.message)
-  }
-
-  if(!dados_relatorio && user) {
-    req.session.user.plantao = user.plantao
   }
   
   return res.status(200).json({
