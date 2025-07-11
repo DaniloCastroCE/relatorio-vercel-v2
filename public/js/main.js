@@ -9,17 +9,20 @@ const getUser = async () => {
     if (result.status === 'success') {
       document.querySelector('#user-nome').textContent = formatName.type_one(result.user.nome)
       document.querySelector('#user-email').textContent = result.user.email
+      
+      const inpNomePlantao = document.querySelector("#inpNomePlantao")
+      const inpDiaPlantao = document.querySelector("#inpDiaPlantao")
     
       usuario = {
         _id: result.user._id,
         nome: result.user.nome,
         email: result.user.email,
-        plantao: result.user.plantao,
+        plantao: inpNomePlantao ? inpNomePlantao.value : result.user.plantao,
         date_online: result.user.date_online,
-        dia_relatorio: new Date(result.user.date_online).toISOString().split('T')[0],
+        dia_relatorio: new Date(inpDiaPlantao ? inpDiaPlantao.value : result.user.date_online).toISOString().split('T')[0],
         save: result.user.save,
       }
-
+      
       console.log(usuario)
     }
 
@@ -404,7 +407,7 @@ const getAllOS_part = (status, result, error) => {
         <label for="plantao">Plantão</label>
         <input 
           type="text" 
-          id="plantao" 
+          id="inpNomePlantao" 
           name="plantao" 
           value="${usuario.plantao}" 
           onchange="mudarPlantao(this)"> 
@@ -414,7 +417,7 @@ const getAllOS_part = (status, result, error) => {
         <label for="dia">dia</label>
         <input 
           type="date" 
-          id="plantao" 
+          id="inpDiaPlantao" 
           name="dia" 
           value="${usuario.dia_relatorio}" 
           onchange="mudarDiaRelatorio(this)"> 
