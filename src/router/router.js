@@ -54,6 +54,7 @@ router.get("/logout", (req, res) => {
     }
 
     res.clearCookie('connect.sid')
+    console.log(`${nome.toUpperCase()} está está offline !`)
     return res.render('login', {
       status: 'success',
       message: `O úsuario ${nome.toUpperCase()} deslogou com sucesso !`
@@ -474,6 +475,7 @@ router.post("/login", async (req, res) => {
       save: 'no-salvo',
     }
 
+    console.log(`${usuario.nome.toUpperCase()} está está online !`)
     return res.redirect('/relatorio')
 
   } catch (err) {
