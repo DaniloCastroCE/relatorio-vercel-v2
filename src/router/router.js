@@ -26,7 +26,7 @@ router.get("/", (req, res) => {
   return res.render('login', { status: null, message: null })
 })
 
-router.get("/getUser", checkAuth, async (req, res) => {
+router.get("/getUser", checkAuth, (req, res) => {
 
   if (!req.session.user) {
     return res.status(401).json({
@@ -34,11 +34,10 @@ router.get("/getUser", checkAuth, async (req, res) => {
       message: "Usuário não autenticado!"
     });
   }
-    
+
   return res.status(200).json({
     status: "success",
-    user: req.session.user,
-    
+    user: req.session.user
   })
 })
 
@@ -92,7 +91,7 @@ router.get("/getAll", checkAuth, async (req, res) => {
 
     const itens = temp ? temp.itens : []
 
-    if(itens.length === 0) req.session.user.save = 'no-salvo'
+    if (itens.length === 0) req.session.user.save = 'no-salvo'
 
     return res.status(200).json({
       status: "success",
@@ -166,7 +165,6 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
 
     if (req.session.user.save === "no-salvo") {
       const temp = await Temp.findById(temp_id).populate('itens')
-
       if (temp && temp.itens && temp.itens.length > 0) {
         const results = await Promise.allSettled(
           temp.itens.map(item => Item.findByIdAndDelete(item._id))
@@ -178,7 +176,6 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
           }
         });
       }
-
     }
 
     const result = await Temp.findByIdAndDelete(temp_id);
@@ -189,6 +186,13 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
     );
     req.session.user._id_temp = null
     req.session.user.save = 'no-salvo';
+    req.session.user.dia_plantao = new Date().toISOString().split('T')[0]
+
+    const usuario = await User.findOne({ _id: req.session.user._id })
+    req.session.user.plantao = usuario.plantao
+
+    await User.updateOne({ _id: req.session.user._id }, { $set: { temp_id: null } })
+
     return res.status(200).json({
       status: "success",
       message: "Sucesso em deletar todos os itens!",
@@ -205,6 +209,7 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
 
 router.put("/salvar", checkAuth, async (req, res) => {
   const temp_id = req.session.user._id_temp
+  const user = req.session.user
 
   const { dia_plantao, nome_plantao } = req.body
 
@@ -245,6 +250,7 @@ router.put("/salvar", checkAuth, async (req, res) => {
           temp_id: temp_id,
         })
         await novoRelatorio.save()
+
         req.session.user.save = 'salvo';
         return res.status(201).json({
           status: "success",
@@ -283,7 +289,7 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
       });
     }
 
-    if(req.session.user.save === "salvo") req.session.user.save = "atualizar"
+    if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
 
     return res.status(200).json({
       status: "success",
@@ -323,10 +329,10 @@ router.post("/create", checkAuth, async (req, res) => {
 
   await novoItem.save();
 
-  let relatorio = await Temp.findById(user._id_temp)
+  let temp = await Temp.findById(user._id_temp)
 
-  if (!relatorio) {
-    relatorio = new Temp({
+  if (!temp) {
+    temp = new Temp({
       user: {
         _id: user._id,
         nome: user.nome,
@@ -337,14 +343,15 @@ router.post("/create", checkAuth, async (req, res) => {
       itens: [novoItem._id],
       _id_temp: user._id_temp,
     })
-    req.session.user._id_temp = relatorio._id
+    req.session.user._id_temp = temp._id
+    await User.updateOne({ _id: user._id }, { $set: { temp_id: temp._id } })
   } else {
-    relatorio.itens.push(novoItem)
+    temp.itens.push(novoItem)
   }
 
-  await relatorio.save()
+  await temp.save()
 
-  if(req.session.user.save === "salvo") req.session.user.save = "atualizar"
+  if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
 
   return res.status(201).json({
     status: "success",
@@ -451,13 +458,19 @@ router.post("/login", async (req, res) => {
       })
     }
 
+    let relatorio_temp = null
+    if (usuario.temp_id) {
+      relatorio_temp = await Relatorio.findOne({ temp_id: usuario.temp_id })
+    }
+
     req.session.user = {
       _id: usuario._id,
       nome: usuario.nome,
-      plantao: usuario.plantao,
+      plantao: relatorio_temp ? relatorio_temp.nome_plantao : usuario.plantao,
       email: usuario.email,
       date_online: new Date(),
-      _id_temp: null,
+      _id_temp: usuario.temp_id,
+      dia_plantao: relatorio_temp ? relatorio_temp.dia_plantao : new Date().toISOString().split('T')[0],
       save: 'no-salvo',
     }
 
@@ -501,7 +514,7 @@ router.put("/update/:id", checkAuth, async (req, res) => {
       });
     }
 
-    if(req.session.user.save === "salvo") req.session.user.save = "atualizar"
+    if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
 
     return res.status(200).json({
       status: "success",
@@ -625,6 +638,26 @@ router.get("/dev/getAllReports", async (req, res) => {
       status: 'success',
       message: "Requisiçao bem sucedida !",
       relatorios: relatoriosCompletos,
+    })
+
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erro interno",
+      error: err.message
+    })
+  }
+})
+
+router.get("/dev/getAllItens", async (req, res) => {
+  try {
+
+    const itens = await Item.find({}).sort({ createdAt: 1 })
+
+    return res.status(200).json({
+      status: 'success',
+      message: "Requisiçao bem sucedida !",
+      relatorios: itens,
     })
 
   } catch (err) {

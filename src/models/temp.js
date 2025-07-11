@@ -12,4 +12,4 @@ const tempSchema = new mongoose.Schema({
   ]
 }, {timestamps: true})
 
-module.exports = mongoose.model('temp', tempSchema)
+module.exports = mongoose.model('Temp', tempSchema)

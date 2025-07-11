@@ -25,4 +25,4 @@ const relatorioSchema = new mongoose.Schema({
   },
 }, {timestamps: true}) 
 
-module.exports = mongoose.model("relatorio", relatorioSchema);
+module.exports = mongoose.model("Relatorio", relatorioSchema);

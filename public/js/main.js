@@ -9,22 +9,23 @@ const getUser = async () => {
     if (result.status === 'success') {
       document.querySelector('#user-nome').textContent = formatName.type_one(result.user.nome)
       document.querySelector('#user-email').textContent = result.user.email
-      
+
       const inpNomePlantao = document.querySelector("#inpNomePlantao")
       const inpDiaPlantao = document.querySelector("#inpDiaPlantao")
-    
+
       usuario = {
         _id: result.user._id,
         nome: result.user.nome,
         email: result.user.email,
-        plantao: inpNomePlantao ? inpNomePlantao.value : result.user.plantao,
+        plantao: inpNomePlantao && inpNomePlantao.value !== "" ? inpNomePlantao.value : result.user.plantao,
         date_online: result.user.date_online,
-        dia_relatorio: new Date(inpDiaPlantao ? inpDiaPlantao.value : result.user.date_online).toISOString().split('T')[0],
+        dia_plantao: inpDiaPlantao && inpDiaPlantao.value !== "" ? inpDiaPlantao.value : result.user.dia_plantao,
         save: result.user.save,
       }
-      
-      console.log(usuario)
+
+
     }
+
 
   } catch (err) {
     console.error(err)
@@ -39,6 +40,7 @@ const resizeObserver = new ResizeObserver((entries) => {
   }
 });
 resizeObserver.observe(document.querySelector(".header"));
+
 
 const loading = (op) => {
   const loading = document.querySelector(".loading");
@@ -145,7 +147,6 @@ const addCountItensToLogo = (op) => {
   } else {
     text.textContent = `${itens.count} registros`;
   }
-  //console.log('Relatório: ', itens.count)
 };
 
 const toggleMenu = () => {
@@ -388,7 +389,6 @@ const addItemToListPrevious = (idInputs, id) => {
   }
 
   let novoItem = {};
-  //console.log(novoItem)
   Object.keys(ItemList).forEach((key) => {
     novoItem[key] = ItemList[key].orig;
   });
@@ -398,36 +398,41 @@ const addItemToListPrevious = (idInputs, id) => {
 };
 addItemToListPrevious("formInputs");
 
+
+
 const getAllOS_part = (status, result, error) => {
   const lista_edit = document.querySelector(`#lista-edit`);
 
   lista_edit.innerHTML = `
-    <div class="control-panel">
-      <div>
-        <label for="plantao">Plantão</label>
-        <input 
-          type="text" 
-          id="inpNomePlantao" 
-          name="plantao" 
-          value="${usuario.plantao}" 
-          onchange="mudarPlantao(this)"> 
-      </div>
+    <div class="container-panel">
+      <div class="control-panel">
+        <div>
+          <label for="plantao">Plantão</label>
+          <input 
+            type="text" 
+            id="inpNomePlantao" 
+            name="plantao" 
+            value="${usuario.plantao}" 
+            onchange="mudarPlantao(this)"> 
+        </div>
 
-      <div>
-        <label for="dia">dia</label>
-        <input 
-          type="date" 
-          id="inpDiaPlantao" 
-          name="dia" 
-          value="${usuario.dia_relatorio}" 
-          onchange="mudarDiaRelatorio(this)"> 
-      </div>
-      <div class="controlBtns form-actions ">
-        <!--<button type="button" onclick="copyListPrevious()">Copiar</button>-->
-        <button type="button" onclick="salvarRelatorio()">Salvar</button>
-        <button type="button" onclick="limparList()">Limpar</button>
+        <div>
+          <label for="dia">dia</label>
+          <input 
+            type="date" 
+            id="inpDiaPlantao" 
+            name="dia" 
+            value="${usuario.dia_plantao}" 
+            onchange="mudarDiaRelatorio(this)"> 
+        </div>
+        <div class="controlBtns form-actions ">
+          <!--<button type="button" onclick="copyListPrevious()">Copiar</button>-->
+          <button type="button" onclick="salvarRelatorio()">Salvar</button>
+          <button type="button" onclick="limparList()">Limpar</button>
+        </div>
       </div>
     </div>
+    <div class="espacoLista"></div>
   `
 
   addCountItensToLogo("clear");
@@ -474,6 +479,15 @@ const getAllOS = async (callback) => {
       callback(data.status, data.message, data.error);
       loading("close");
     }
+    setTimeout(() => {
+      const div1 = document.querySelector(".container-panel")
+      const div2 = document.querySelector(".espacoLista")
+      const observer = new ResizeObserver(() => {
+        div2.style.height = (div1.offsetHeight + 0) + 'px';
+      });
+
+      observer.observe(div1);
+    }, 100)
   } catch (err) {
     console.error(`Erro: ${err}`);
     loading("close");
@@ -735,7 +749,6 @@ const createOS = async (e) => {
     obs: form.obs.value,
   };
 
-  //console.log(os)
 
   try {
     const response = await fetch("/create", {
@@ -777,7 +790,7 @@ const salvarRelatorio = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        dia_plantao: usuario.dia_relatorio,
+        dia_plantao: usuario.dia_plantao,
         nome_plantao: usuario.plantao,
       })
     })
@@ -818,11 +831,10 @@ const copyListPrevious = async () => {
     }
 
     const previous = list.map((item) => convertFromBancoToPrevious(item));
-    console.log(previous);
 
     let textDia = ''
     try {
-      const [ano, mes, dia] = usuario.dia_relatorio.split('-')
+      const [ano, mes, dia] = usuario.dia_plantao.split('-')
       const dataBR = `${dia}/${mes}/${ano}`;
 
       textDia = `do dia ${dataBR} - Plantão ${formatName.type_one(usuario.plantao)}`
@@ -996,7 +1008,7 @@ const limparList = async () => {
     ❗OBS: Identifiquei que você não salvou a lista.❗\n
     Se apertar em "OK", não vai conseguir recuperar a lista ! \n`
 
-  } else if(usuario.save === "atualizar") {
+  } else if (usuario.save === "atualizar") {
     textSave = `\n 
     ❗OBS: Identifiquei que você atualizou a lista, mas não salvou ela.❗\n
     Se apertar em "OK", vai perder o restante da lista que você ainda não salvou ! \n`
@@ -1020,6 +1032,8 @@ const limparList = async () => {
     }
     loading("close");
     addCountItensToLogo("clear");
+    document.querySelector("#inpNomePlantao").value = ''
+    document.querySelector("#inpDiaPlantao").value = ''
     getUser()
   } catch (error) {
     setTimeout(() => {
@@ -1072,7 +1086,7 @@ const scrollToBottom = () => {
 };
 
 const mudarDiaRelatorio = (obj) => {
-  usuario.dia_relatorio = obj.value
+  usuario.dia_plantao = obj.value
 }
 
 const mudarPlantao = (obj) => {
