@@ -39,7 +39,8 @@ router.get("/getUser", checkAuth, async (req, res) => {
   try {
     const relatorio =  await Relatorio.findOne({temp_id: req.session.user._id_temp})
     dados_relatorio = {
-      relatorio.dia_plantao, relatorio.nome_plantao
+      dia_plantao: relatorio.dia_plantao, 
+      nome_plantao: relatorio.nome_plantao
     }
     
   }catch(err){
