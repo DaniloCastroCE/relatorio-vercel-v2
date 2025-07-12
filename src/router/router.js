@@ -694,7 +694,7 @@ router.get("/api/get-reports", async (req, res) => {
 
     return res.status(200).json({
       status: 'success',
-      message: "Requisiçao bem sucedida !",
+      message: "Requisiçao bem sucedida dos reports!",
       relatorios: relatoriosCompletos,
     })
 
@@ -714,7 +714,7 @@ router.get("/api/get-itens", async (req, res) => {
 
     return res.status(200).json({
       status: 'success',
-      message: "Requisiçao bem sucedida !",
+      message: "Requisiçao bem sucedida dos itens!",
       relatorios: itens,
     })
 
