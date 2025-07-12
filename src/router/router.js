@@ -292,8 +292,9 @@ router.put("/salvar", checkAuth, async (req, res) => {
           { _id: temp_id },
           {
             $set: {
+              'user.dia_plantao': dia_plantao,
               'user.plantao': nome_plantao,
-              'user.save': user.save
+              'user.save': "salvo"
             }
           }
         )
@@ -311,6 +312,17 @@ router.put("/salvar", checkAuth, async (req, res) => {
           temp_id: temp_id,
         })
         await novoRelatorio.save()
+
+        await Temp.updateOne(
+          { _id: temp_id },
+          {
+            $set: {
+              'user.dia_plantao': dia_plantao,
+              'user.plantao': nome_plantao,
+              'user.save': "salvo"
+            }
+          }
+        )
 
         req.session.user.save = 'salvo';
         console.log(`${user.nome} salvou o relatorio do dia ${dataBR}`)
@@ -357,16 +369,17 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
       });
     }
 
-    if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
-
-    await Temp.updateOne(
-      { _id: req.session.user._id_temp },
-      {
-        $set: {
-          'user.save': "atualizar"
+    if (req.session.user.save === "salvo") {
+      req.session.user.save = "atualizar"
+      await Temp.updateOne(
+        { _id: req.session.user._id_temp },
+        {
+          $set: {
+            'user.save': "atualizar"
+          }
         }
-      }
-    )
+      )
+    }
 
     return res.status(200).json({
       status: "success",
@@ -416,7 +429,8 @@ router.post("/create", checkAuth, async (req, res) => {
         email: user.email,
         date_online: user.date_online,
         plantao: user.plantao,
-        save: user.save
+        dia_plantao: user.dia_plantao,
+        save: "no-salvo",
       },
       itens: [novoItem._id],
       _id_temp: user._id_temp,
@@ -425,11 +439,13 @@ router.post("/create", checkAuth, async (req, res) => {
     await User.updateOne({ _id: user._id }, { $set: { temp_id: temp._id } })
   } else {
     temp.itens.push(novoItem)
+    if (req.session.user.save === "salvo") {
+      temp.user.save = "atualizar"
+    }
   }
 
   if (req.session.user.save === "salvo") {
     req.session.user.save = "atualizar"
-    temp.user.save = "atualizar"
   }
 
   await temp.save()
@@ -545,23 +561,16 @@ router.post("/login", async (req, res) => {
       })
     }
 
-    let relatorio_temp = null
-    if (usuario.temp_id) {
-      relatorio_temp = await Relatorio.findOne({ temp_id: usuario.temp_id })
-    }
-
     const temp = await Temp.findById(usuario.temp_id)
-
-    console.log(temp)
 
     req.session.user = {
       _id: usuario._id,
       nome: usuario.nome,
-      plantao: relatorio_temp ? relatorio_temp.nome_plantao : usuario.plantao,
+      plantao: temp ? temp.user.plantao : usuario.plantao,
       email: usuario.email,
       date_online: new Date(),
       _id_temp: usuario.temp_id,
-      dia_plantao: relatorio_temp ? relatorio_temp.dia_plantao : new Date().toISOString().split('T')[0],
+      dia_plantao: temp ? temp.user.dia_plantao : new Date().toISOString().split('T')[0],
       save: temp ? temp.user.save : 'no-salvo',
     }
 
