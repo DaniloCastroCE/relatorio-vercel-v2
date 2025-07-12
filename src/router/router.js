@@ -323,7 +323,8 @@ router.put("/salvar", checkAuth, async (req, res) => {
             }
           }
         )
-
+        req.session.user.dia_plantao = dia_plantao
+        req.session.user.plantao = nome_plantao
         req.session.user.save = 'salvo';
         console.log(`${user.nome} salvou o relatorio do dia ${dataBR}`)
         return res.status(201).json({
