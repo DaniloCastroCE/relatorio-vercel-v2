@@ -279,12 +279,21 @@ router.put("/salvar", checkAuth, async (req, res) => {
       const relatorio = await Relatorio.findOne({ temp_id: temp_id })
 
       if (relatorio) {
-        relatorio.nome_plantao = nome_plantao;
-        relatorio.dia_plantao = dia_plantao;
-        relatorio.relatorio = temp,
-          relatorio.temp_id = temp_id
+        relatorio.nome_plantao = nome_plantao
+        relatorio.dia_plantao = dia_plantao
+        relatorio.relatorio = temp
+        relatorio.temp_id = temp_id
         await relatorio.save();
         req.session.user.save = 'salvo';
+        req.session.user.plantao = nome_plantao
+        req.session.user.dia_plantao = dia_plantao
+
+        await Temp.updateOne(
+          {_id: temp_id},
+          {$set: {
+            'user.plantao': nome_plantao,
+          }}
+        )
 
         return res.status(200).json({
           status: "success",
@@ -414,6 +423,10 @@ router.post("/create", checkAuth, async (req, res) => {
     obj: item,
   });
 });
+
+router.post("/putNomeDiaPlantaoToTemp/",(req,res) => {
+  
+})
 
 router.post("/register", async (req, res) => {
 
