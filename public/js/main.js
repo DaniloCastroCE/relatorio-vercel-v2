@@ -62,6 +62,8 @@ const initAddCountItensToLogo = async () => {
       itens.count = result.qt;
       itens.ativo = true;
     }
+
+    console.log(usuario)
   } catch (error) {
     console.error(`Erro na função addCountItensToLogo: ${error}`);
     itens.count = 0;
@@ -473,7 +475,7 @@ const getAllOS = async (callback) => {
     const data = await response.json();
 
     if (data.status === "success") {
-      console.log(data.message);
+      //console.log(data.message);
       callback(data.status, data.json);
       loading("close");
     } else {

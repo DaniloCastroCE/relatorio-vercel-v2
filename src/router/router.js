@@ -17,7 +17,6 @@ const checkAuth = (req, res, next) => {
   })
 }
 
-
 router.get("/relatorio", checkAuth, (req, res) => {
   return res.sendFile(path.join(__dirname, "../../public/pages/index.html"));
 });
@@ -163,23 +162,31 @@ router.get("/checkNome/:nome", checkAuth, async (req, res) => {
 router.get('/checkLista', checkAuth, async (req, res) => {
   const temp_id = req.session.user._id_temp
   try {
-    const temp = await Temp.findOne({ _id: temp_id})
+    const temp = await Temp.findOne({ _id: temp_id })
 
-    
-    if (!temp || !temp.itens || temp.itens.length < 1) {
+    if (!temp || !temp.itens) {
       return res.status(404).json({
         status: "error",
         pass: false,
-        message: "❗(error) Não existe itens na lista para criar uma nova ❗",
+        message: "❗(error 1) Não existe itens na lista para criar uma nova ❗",
+      });
+    }
+    else if (temp.itens.length < 1) {
+      return res.status(404).json({
+        status: "error",
+        pass: false,
+        message: "❗(error 2) Não existe itens na lista para criar uma nova ❗",
       });
     } else {
       return res.status(200).json({
         status: "success",
         pass: true,
+        qt: temp.itens.length,
         message: "Existe item ou itens na lista !",
       });
     }
-  }catch (err) {
+  } catch (err) {
+    console.error(err)
     return res.status(500).json({
       status: "error",
       pass: true,
@@ -196,11 +203,10 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
     if (req.session.user.save === "no-salvo") {
       const temp = await Temp.findById(temp_id).populate('itens')
 
-      if (temp.itens.length < 1 || !temp) {
+      if (!temp || temp.itens.length < 1) {
         return res.status(404).json({
           status: "error",
           message: "A lista está vazia !",
-          error: err.message,
         });
       }
 
@@ -238,6 +244,7 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
       result: result,
     });
   } catch (err) {
+    console.error(err)
     return res.status(400).json({
       status: "error",
       message: "Errou em deletar todos os itens!",
@@ -298,8 +305,6 @@ router.put("/salvar", checkAuth, async (req, res) => {
         });
       }
 
-
-
     } else {
       return res.status(404).json({
         status: "error",
@@ -309,6 +314,7 @@ router.put("/salvar", checkAuth, async (req, res) => {
 
 
   } catch (err) {
+    console.error(err)
     return res.status(500).json({
       status: "error",
       message: "❌ Erro interno",
@@ -321,6 +327,12 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const itemDeletado = await Item.findByIdAndDelete(id);
+
+    await Temp.findByIdAndUpdate(
+      req.session.user._id_temp, 
+      { $pull: 
+        {itens: id}
+      })
 
     if (!itemDeletado) {
       return res.status(404).json({
