@@ -503,8 +503,8 @@ const getAllOS_part = (status, result, error) => {
         </div>
         <div class="controlBtns form-actions ">
           <!--<button type="button" onclick="copyListPrevious()">Copiar</button>-->
-          <button type="button" onclick="salvarRelatorio()">Salvar</button>
-          <button type="button" onclick="limparList()">Novo</button>
+          <button type="button" onclick="salvarRelatorio()">Salvar Lista</button>
+          <button type="button" onclick="limparList()">Nova Lista</button>
         </div>
       </div>
     </div>
