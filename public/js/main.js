@@ -76,11 +76,11 @@ const periodoDoDia = () => {
   const hora = agora.getHours();
 
   if (hora >= 5 && hora < 12) {
-    return "Bom dia";   // Manhã
+    return "Bom dia";
   } else if (hora >= 12 && hora < 18) {
-    return "Boa tarde"; // Tarde
+    return "Boa tarde";
   } else {
-    return "Boa noite"; // Noite
+    return "Boa noite";
   }
 }
 
@@ -95,9 +95,9 @@ const tela_inicial = async () => {
       section_init.classList.remove('display-none')
 
       if (result && result.nome) {
-        tela_inicial.children[0].textContent = `Bom ${periodoDoDia()} ${formatName.type_one(result.nome)}!`;
+        tela_inicial.children[0].textContent = `${periodoDoDia()} ${formatName.type_one(result.nome)}!`;
       } else {
-        tela_inicial.children[0].textContent = `Bom ${periodoDoDia()}!`;
+        tela_inicial.children[0].textContent = `${periodoDoDia()}!`;
       }
 
     } else {
