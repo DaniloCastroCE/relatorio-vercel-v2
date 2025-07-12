@@ -60,6 +60,10 @@ header {
     color: white;
     cursor: pointer;
 }
+.menu-toggle svg {
+    width: 30px;
+    height: auto;
+}
 
 .menu {
     flex: 1;
@@ -117,7 +121,7 @@ header {
     justify-content: center;
     color: white;
     font-size: 14px;
-    
+
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -150,6 +154,7 @@ header {
     .menu {
         display: none;
         flex-direction: column;
+        margin-top: 40px;
     }
 
     .menu nav {
@@ -159,6 +164,16 @@ header {
 
     .user {
         position: absolute;
-        right: 0;
+        top: 2px;
+        right: 2px;
+        height: fit-content;
+    }
+
+    #user-email, .btn-sair p {
+        display: none;
+    }
+    .btn-sair svg {
+        width: 30px;
+        height: auto;
     }
 }

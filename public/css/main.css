@@ -288,7 +288,7 @@ main {
 @media (max-width: 768px) {
   .addOs {
     flex-direction: column;
-    margin: 0 0 10px;
+    margin: 10px auto;
   }
 
   .listaPrevious {

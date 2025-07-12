@@ -7,6 +7,7 @@ const getUser = async () => {
     const response = await fetch("/getUser")
     const result = await response.json()
     if (result.status === 'success') {
+      document.title = `${formatName.type_one(result.user.nome)} - Relatório de Maracanaú`
       document.querySelector('#user-nome').textContent = formatName.type_one(result.user.nome)
       document.querySelector('#user-email').textContent = result.user.email
 
@@ -1003,6 +1004,20 @@ const copyListPrevious = async () => {
 
 const limparList = async () => {
   let textSave = ''
+  loading("open");
+  try{
+    const resCheckLista = await fetch("/checkLista")
+    const resultCheckList = await resCheckLista.json()
+
+    if(!resultCheckList.pass){
+      alert(resultCheckList.message)
+      loading("close");
+      return
+    }
+    
+  }catch (err){
+    console.error(err)
+  }
 
   if (usuario.save === 'no-salvo') {
     textSave = `\n 
@@ -1015,8 +1030,10 @@ const limparList = async () => {
     Se apertar em "OK", vai perder o restante da lista que você ainda não salvou ! \n`
   }
 
-  if (!confirm(`⚠️ Tem certeza que deseja deletar a lista de OS atual para criar uma nova ? ⚠️${textSave}`)) return;
-  loading("open");
+  if (!confirm(`⚠️ Tem certeza que deseja deletar a lista de OS atual para criar uma nova ? ⚠️${textSave}`)) {
+    loading("close")
+    return
+  };
 
   try {
     const response = await fetch(`/deleteAll`, { method: "DELETE" });

@@ -54,7 +54,7 @@ router.get("/logout", (req, res) => {
     }
 
     res.clearCookie('connect.sid')
-    console.log(`${nome.toUpperCase()} está está offline !`)
+    console.log(`${nome.toUpperCase()} está offline !`)
     return res.render('login', {
       status: 'success',
       message: `O úsuario ${nome.toUpperCase()} deslogou com sucesso !`
@@ -160,12 +160,50 @@ router.get("/checkNome/:nome", checkAuth, async (req, res) => {
   }
 });
 
+router.get('/checkLista', checkAuth, async (req, res) => {
+  const temp_id = req.session.user._id_temp
+  try {
+    const temp = await Temp.findOne({ _id: temp_id})
+
+    
+    if (!temp || !temp.itens || temp.itens.length < 1) {
+      return res.status(404).json({
+        status: "error",
+        pass: false,
+        message: "❗(error) Não existe itens na lista para criar uma nova ❗",
+      });
+    } else {
+      return res.status(200).json({
+        status: "success",
+        pass: true,
+        message: "Existe item ou itens na lista !",
+      });
+    }
+  }catch (err) {
+    return res.status(500).json({
+      status: "error",
+      pass: true,
+      message: "Erro interno !",
+      error: err.message,
+    });
+  }
+})
+
 router.delete("/deleteAll", checkAuth, async (req, res) => {
   const temp_id = req.session.user._id_temp
   try {
 
     if (req.session.user.save === "no-salvo") {
       const temp = await Temp.findById(temp_id).populate('itens')
+
+      if (temp.itens.length < 1 || !temp) {
+        return res.status(404).json({
+          status: "error",
+          message: "A lista está vazia !",
+          error: err.message,
+        });
+      }
+
       if (temp && temp.itens && temp.itens.length > 0) {
         const results = await Promise.allSettled(
           temp.itens.map(item => Item.findByIdAndDelete(item._id))
@@ -253,6 +291,7 @@ router.put("/salvar", checkAuth, async (req, res) => {
         await novoRelatorio.save()
 
         req.session.user.save = 'salvo';
+        console.log(`${user.nome} salvou o relatorio do dia ${dataBR}`)
         return res.status(201).json({
           status: "success",
           message: `✅ Relatorio dia ${dataBR}, foi salvo com sucesso !`,
@@ -416,9 +455,11 @@ router.post("/register", async (req, res) => {
 
     await newUser.save()
 
+    console.log(`O úsuario ${nome.toUpperCase()} com email ${email.toUpperCase()}, foi criado com sucesso !`)
+
     return res.status(201).json({
       status: "success",
-      message: `Sucesso em criar o usuario ${nome}`
+      message: `O úsuario ${nome.toUpperCase()} foi criado com sucesso !`
     })
 
   } catch (err) {
@@ -475,7 +516,7 @@ router.post("/login", async (req, res) => {
       save: 'no-salvo',
     }
 
-    console.log(`${usuario.nome.toUpperCase()} está está online !`)
+    console.log(`${usuario.nome.toUpperCase()} está online !`)
     return res.redirect('/relatorio')
 
   } catch (err) {
