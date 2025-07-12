@@ -30,6 +30,7 @@
         <div class="menu">
             <nav onclick="clickMenu(this.id)" id="nav-add">Adicionar</nav>
             <nav onclick="clickMenu(this.id)" id="nav-list">Lista</nav>
+            <!--<nav onclick="clickMenu(this.id)" id="nav-reports">Relatórios</nav>-->
         </div>
         <div class="user">
             <div class="info-user">
@@ -37,11 +38,7 @@
                 <p id="user-email"></p>
             </div>
             <div class="btn-sair" onclick="window.location.href='/logout'">
-                <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    height="24px" 
-                    viewBox="0 -960 960 960" 
-                    width="24px"
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
                     fill="#000000">
                     <path
                         d="M200-120q-33 0-56.5-23.5T120-200v-160h80v160h560v-560H200v160h-80v-160q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm220-160-56-58 102-102H120v-80h346L364-622l56-58 200 200-200 200Z">
@@ -59,8 +56,21 @@
                 <p>Aguarde . . .</p>
             </div>
         </section>
+        <section class="section-init display-none itens-section">
+            <div class="tela-inicial welcome-container">
+                <h1 class="title-init "></h1>
+                <div class="content-init">
+                    <p class="subtitle">Que bom ter você aqui.</p>
+                    <p class="description">
+                        Este é o seu painel de controle onde você pode adicionar registros, visualizar listas, gerar
+                        relatórios e gerenciar suas tarefas de forma rápida e prática. Use o menu acima para navegar
+                        entre as opções.
+                    </p>
+                </div>
+            </div>
+        </section>
         <section class="sectionToAdd">
-            <div class="addOs">
+            <div class="addOs display-none itens-section">
                 <div class="info-nome-message no-select" id="exists-name-addOs">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
                         fill="#1f1f1f">
@@ -157,8 +167,11 @@
             </div>
         </section>
         <section class="section-lista">
-            <div class="lista-edit display-none" id="lista-edit"></div>
+            <div class="lista-edit display-none itens-section" id="lista-edit"></div>
         </section>
+        <secction class="section-relatorios">
+            <div class="relatorios display-none itens-section"></div>
+        </secction>
     </main>
     <footer>Desenvolvido por: @DaniloCastroCE (2025)</footer>
     <script src="./js/FormatName.js"></script>

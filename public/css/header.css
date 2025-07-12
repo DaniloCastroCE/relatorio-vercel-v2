@@ -121,7 +121,6 @@ header {
     justify-content: center;
     color: white;
     font-size: 14px;
-
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -135,6 +134,11 @@ header {
     align-items: center;
     flex-direction: column;
     cursor: pointer;
+    padding: 1px 5px;
+    border-radius: 10px;
+}
+.btn-sair:hover {
+    background-color: #5d77a0;
 }
 
 .btn-sair svg {

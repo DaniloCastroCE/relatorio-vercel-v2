@@ -162,13 +162,14 @@ router.get("/checkNome/:nome", checkAuth, async (req, res) => {
 router.get('/checkLista', checkAuth, async (req, res) => {
   const temp_id = req.session.user._id_temp
   try {
-    const temp = await Temp.findOne({ _id: temp_id })
+    const temp = await Temp.findOne({ _id: temp_id }).populate('itens')
 
     if (!temp || !temp.itens) {
       return res.status(404).json({
         status: "error",
         pass: false,
         message: "❗(error 1) Não existe itens na lista para criar uma nova ❗",
+        nome: req.session.user.nome,
       });
     }
     else if (temp.itens.length < 1) {
@@ -176,13 +177,15 @@ router.get('/checkLista', checkAuth, async (req, res) => {
         status: "error",
         pass: false,
         message: "❗(error 2) Não existe itens na lista para criar uma nova ❗",
+        nome: req.session.user.nome,
       });
     } else {
       return res.status(200).json({
         status: "success",
         pass: true,
-        qt: temp.itens.length,
+        itens: temp.itens,
         message: "Existe item ou itens na lista !",
+        nome: req.session.user.nome,
       });
     }
   } catch (err) {
@@ -663,7 +666,7 @@ router.post("/dev/updateNome", async (req, res) => {
 
 })
 
-router.get("/dev/getAllReports", async (req, res) => {
+router.get("/api/get-reports", async (req, res) => {
   try {
 
     const relatorios = await Relatorio.find({}).sort({ createdAt: 1 })
@@ -704,7 +707,7 @@ router.get("/dev/getAllReports", async (req, res) => {
   }
 })
 
-router.get("/dev/getAllItens", async (req, res) => {
+router.get("/api/get-itens", async (req, res) => {
   try {
 
     const itens = await Item.find({}).sort({ createdAt: 1 })

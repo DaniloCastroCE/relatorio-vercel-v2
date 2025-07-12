@@ -71,6 +71,41 @@ const initAddCountItensToLogo = async () => {
   addCountItensToLogo();
 };
 
+const periodoDoDia = () => {
+  const agora = new Date();
+  const hora = agora.getHours();
+
+  if (hora >= 5 && hora < 12) {
+    return "Bom dia";   // Manhã
+  } else if (hora >= 12 && hora < 18) {
+    return "Boa tarde"; // Tarde
+  } else {
+    return "Boa noite"; // Noite
+  }
+}
+
+const tela_inicial = async () => {
+  try {
+    const response = await fetch("/checkLista")
+    const result = await response.json()
+
+    if (result.status === 'error') {
+      const section_init = document.querySelector('.section-init')
+      const tela_inicial = document.querySelector('.tela-inicial')
+      section_init.classList.remove('display-none')
+      tela_inicial.children[0].textContent = `${periodoDoDia()} ${formatName.type_one(result.nome)} !`;
+
+    } else {
+      clickMenu('nav-list')
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+tela_inicial()
+
 initAddCountItensToLogo();
 
 const checkNomeList = async (obj) => {
@@ -158,14 +193,14 @@ const toggleMenu = () => {
 };
 
 const clickMenu = (id) => {
-  const addOs = document.querySelector(".addOs");
-  const lista_edit = document.querySelector(`#lista-edit`);
-  const menu = document.querySelector(".menu");
+
+  document.querySelectorAll('.itens-section').forEach((el => {
+    el.classList.add("display-none")
+  }))
 
   switch (id) {
     case "nav-add":
-      addOs.classList.add("display-none");
-      lista_edit.classList.add("display-none");
+      const addOs = document.querySelector(".addOs");
       addOs.classList.remove("display-none");
       if (!addOs.classList.contains("display-none")) {
         addItemToListPrevious("formInputs");
@@ -173,18 +208,21 @@ const clickMenu = (id) => {
       break;
 
     case "nav-list":
-      addOs.classList.add("display-none");
-      lista_edit.classList.add("display-none");
+      const lista_edit = document.querySelector(`#lista-edit`);
       lista_edit.classList.remove("display-none");
       if (!lista_edit.classList.contains("display-none")) {
         getAllOS(getAllOS_part);
       }
       break;
+    case "nav-reports":
+      const relatorios = document.querySelector('.relatorios')
+      relatorios.classList.remove("display-none")
 
     default:
       break;
   }
 
+  const menu = document.querySelector(".menu");
   if (menu.classList.contains("showMenu")) {
     menu.classList.toggle("showMenu");
   }
@@ -229,9 +267,41 @@ const convertForm = (idForm, radios) => {
   return inpValue;
 };
 
+const convertAllItensFromDbToPrevious = (array) => {
+  let itens = []
+
+  array = array.map(item => ({
+    contato: item.contato,
+    envio: item.envio,
+    exec: item.exec,
+    horario: item.horario,
+    nome: item.nome,
+    obs: item.obs,
+    os: item.os,
+    zona: item.zona
+  }));
+
+  array.forEach(item => {
+    itens.push(convertFromBancoToPrevious(item))
+  })
+  return itens
+}
+
+const convertFromBancoToPrevious = (item) => {
+  let ItemList = {};
+  Object.keys(item).forEach((key) => {
+    ItemList[key] = { orig: item[key], modif: "" };
+
+    if (key === "os") {
+      idOs = item[key].id;
+    }
+  });
+
+  return editPrevious(ItemList);
+};
+
 const editPrevious = (ItemList) => {
   //A função precisa de obj com valor: {orig: '', modif: ''}.
-
   Object.keys(ItemList).forEach((key) => {
     switch (key) {
       case "nome":
@@ -400,7 +470,6 @@ const addItemToListPrevious = (idInputs, id) => {
   }
 };
 addItemToListPrevious("formInputs");
-
 
 
 const getAllOS_part = (status, result, error) => {
@@ -666,19 +735,6 @@ const codeHtmlItemToList = (lista_edit, id, item, ordem) => {
       }
     });
   });
-};
-
-const convertFromBancoToPrevious = (item) => {
-  let ItemList = {};
-  Object.keys(item).forEach((key) => {
-    ItemList[key] = { orig: item[key], modif: "" };
-
-    if (key === "os") {
-      idOs = item[key].id;
-    }
-  });
-
-  return editPrevious(ItemList);
 };
 
 const atualizarItem = async (id, novoItem) => {
@@ -1007,17 +1063,17 @@ const copyListPrevious = async () => {
 const limparList = async () => {
   let textSave = ''
   loading("open");
-  try{
+  try {
     const resCheckLista = await fetch("/checkLista")
     const resultCheckList = await resCheckLista.json()
 
-    if(!resultCheckList.pass){
+    if (!resultCheckList.pass) {
       alert(resultCheckList.message)
       loading("close");
       return
     }
-    
-  }catch (err){
+
+  } catch (err) {
     console.error(err)
   }
 
