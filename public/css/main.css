@@ -37,7 +37,7 @@ main {
 }
 
 .section-init {
-  min-height: 90vh;
+  min-height: 90%;
   display: flex;
   align-items: center;
   justify-content: center;
