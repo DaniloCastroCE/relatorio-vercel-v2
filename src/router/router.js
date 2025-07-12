@@ -289,10 +289,13 @@ router.put("/salvar", checkAuth, async (req, res) => {
         req.session.user.dia_plantao = dia_plantao
 
         await Temp.updateOne(
-          {_id: temp_id},
-          {$set: {
-            'user.plantao': nome_plantao,
-          }}
+          { _id: temp_id },
+          {
+            $set: {
+              'user.plantao': nome_plantao,
+              'user.save': user.save
+            }
+          }
         )
 
         return res.status(200).json({
@@ -341,9 +344,10 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
     const itemDeletado = await Item.findByIdAndDelete(id);
 
     await Temp.findByIdAndUpdate(
-      req.session.user._id_temp, 
-      { $pull: 
-        {itens: id}
+      req.session.user._id_temp,
+      {
+        $pull:
+          { itens: id }
       })
 
     if (!itemDeletado) {
@@ -354,6 +358,15 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
     }
 
     if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
+
+    await Temp.updateOne(
+      { _id: req.session.user._id_temp },
+      {
+        $set: {
+          'user.save': "atualizar"
+        }
+      }
+    )
 
     return res.status(200).json({
       status: "success",
@@ -403,6 +416,7 @@ router.post("/create", checkAuth, async (req, res) => {
         email: user.email,
         date_online: user.date_online,
         plantao: user.plantao,
+        save: user.save
       },
       itens: [novoItem._id],
       _id_temp: user._id_temp,
@@ -413,9 +427,12 @@ router.post("/create", checkAuth, async (req, res) => {
     temp.itens.push(novoItem)
   }
 
-  await temp.save()
+  if (req.session.user.save === "salvo") {
+    req.session.user.save = "atualizar"
+    temp.user.save = "atualizar"
+  }
 
-  if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
+  await temp.save()
 
   return res.status(201).json({
     status: "success",
@@ -424,8 +441,8 @@ router.post("/create", checkAuth, async (req, res) => {
   });
 });
 
-router.post("/putNomeDiaPlantaoToTemp/",(req,res) => {
-  
+router.post("/putNomeDiaPlantaoToTemp/", (req, res) => {
+
 })
 
 router.post("/register", async (req, res) => {
@@ -533,6 +550,10 @@ router.post("/login", async (req, res) => {
       relatorio_temp = await Relatorio.findOne({ temp_id: usuario.temp_id })
     }
 
+    const temp = await Temp.findById(usuario.temp_id)
+
+    console.log(temp)
+
     req.session.user = {
       _id: usuario._id,
       nome: usuario.nome,
@@ -541,7 +562,7 @@ router.post("/login", async (req, res) => {
       date_online: new Date(),
       _id_temp: usuario.temp_id,
       dia_plantao: relatorio_temp ? relatorio_temp.dia_plantao : new Date().toISOString().split('T')[0],
-      save: 'no-salvo',
+      save: temp ? temp.user.save : 'no-salvo',
     }
 
     console.log(`${usuario.nome.toUpperCase()} está online !`)
@@ -585,7 +606,17 @@ router.put("/update/:id", checkAuth, async (req, res) => {
       });
     }
 
-    if (req.session.user.save === "salvo") req.session.user.save = "atualizar"
+    if (req.session.user.save === "salvo") {
+      req.session.user.save = "atualizar"
+      await Temp.updateOne(
+        { _id: req.session.user._id_temp },
+        {
+          $set: {
+            'user.save': "atualizar"
+          }
+        }
+      )
+    }
 
     return res.status(200).json({
       status: "success",
