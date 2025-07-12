@@ -93,7 +93,12 @@ const tela_inicial = async () => {
       const section_init = document.querySelector('.section-init')
       const tela_inicial = document.querySelector('.tela-inicial')
       section_init.classList.remove('display-none')
-      tela_inicial.children[0].textContent = `${periodoDoDia()} ${formatName.type_one(result.nome)} !`;
+
+      if (result && result.nome) {
+        tela_inicial.children[0].textContent = `Bom ${periodoDoDia()} ${formatName.type_one(result.nome)}!`;
+      } else {
+        tela_inicial.children[0].textContent = `Bom ${periodoDoDia()}!`;
+      }
 
     } else {
       clickMenu('nav-list')
@@ -102,7 +107,6 @@ const tela_inicial = async () => {
     console.error(err)
   }
 }
-
 
 tela_inicial()
 
