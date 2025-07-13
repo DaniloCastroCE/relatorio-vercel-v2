@@ -165,7 +165,7 @@ const showExistsNome = (time) => {
       info.style.visibility = "hidden";
       infoAddOs.style.opacity = 0;
       infoAddOs.style.visibility = "hidden";
-    }, 10000);
+    }, 15000);
   }
 };
 
