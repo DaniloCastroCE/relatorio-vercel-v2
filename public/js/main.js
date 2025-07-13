@@ -830,8 +830,10 @@ const createOS = async (e) => {
 
     alert(data.message);
     console.log(data.message);
-    if (data.status === "success") form.reset();
-    showExistsNome("nulo");
+    if (data.status === "success") {
+      form.reset();
+      showExistsNome("nulo");
+    }    
     addItemToListPrevious("formInputs");
     getUser()
     loading("close");
