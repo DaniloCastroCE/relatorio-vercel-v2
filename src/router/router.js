@@ -772,7 +772,7 @@ router.post("/dev/updateNome", async (req, res) => {
 router.get("/api/get-reports", async (req, res) => {
   try {
 
-    const relatorios = await Relatorio.find({}).sort({ createdAt: 1 })
+    const relatorios = await Relatorio.find({}).populate('itens').sort({ createdAt: 1 })
 
     if (!relatorios) {
       return res.status(404).json({
@@ -781,24 +781,10 @@ router.get("/api/get-reports", async (req, res) => {
       })
     }
 
-    const relatoriosCompletos = await Promise.all(
-      relatorios.map(async (r) => {
-        const itensDocs = await Item.find({ _id: { $in: r.relatorio.itens } }).lean();
-        return {
-          ...r.toObject(),
-          relatorio: {
-            ...r.relatorio,
-            itens: itensDocs.length > 0 ? itensDocs : r.relatorio.itens
-          }
-        };
-      })
-    );
-
-
     return res.status(200).json({
       status: 'success',
       message: "Requisiçao bem sucedida dos reports!",
-      relatorios: relatoriosCompletos,
+      relatorios: relatorios,
     })
 
   } catch (err) {
