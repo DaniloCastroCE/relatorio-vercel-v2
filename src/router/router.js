@@ -793,6 +793,7 @@ router.get("/api/get-reports", async (req, res) => {
       status: 'success',
       message: "Requisiçao bem sucedida dos reports!",
       relatorios: relatorios,
+      length: relatorios.length,
     })
 
   } catch (err) {
@@ -812,7 +813,8 @@ router.get("/api/get-itens", async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: "Requisiçao bem sucedida dos itens!",
-      relatorios: itens,
+      itens: itens,
+      length: itens.length,
     })
 
   } catch (err) {
