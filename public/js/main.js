@@ -11,22 +11,17 @@ const getUser = async () => {
       document.querySelector('#user-nome').textContent = formatName.type_one(result.user.nome)
       document.querySelector('#user-email').textContent = result.user.email
 
-      const inpNomePlantao = document.querySelector("#inpNomePlantao")
-      const inpDiaPlantao = document.querySelector("#inpDiaPlantao")
-
       usuario = {
-        _id: result.user._id,
+        id: result.user.id,
         nome: result.user.nome,
         email: result.user.email,
-        plantao: inpNomePlantao && inpNomePlantao.value !== "" ? inpNomePlantao.value : result.user.plantao,
-        date_online: result.user.date_online,
-        dia_plantao: inpDiaPlantao && inpDiaPlantao.value !== "" ? inpDiaPlantao.value : result.user.dia_plantao,
-        save: result.user.save,
+        nome_plantao: result.user.nome_plantao,
+        dia_plantao: result.user.dia_plantao,
+        saved: result.user.saved
       }
 
-
+      console.log(usuario)
     }
-
 
   } catch (err) {
     console.error(err)
@@ -488,7 +483,7 @@ const getAllOS_part = (status, result, error) => {
             type="text" 
             id="inpNomePlantao" 
             name="plantao" 
-            value="${usuario.plantao}" 
+            value="${usuario.nome_plantao}" 
             onchange="mudarPlantao(this)"> 
         </div>
 
@@ -499,7 +494,7 @@ const getAllOS_part = (status, result, error) => {
             id="inpDiaPlantao" 
             name="dia" 
             value="${usuario.dia_plantao}" 
-            onchange="mudarDiaRelatorio(this)"> 
+            onchange="mudarPlantao(this)"> 
         </div>
         <div class="controlBtns form-actions ">
           <!--<button type="button" onclick="copyListPrevious()">Copiar</button>-->
@@ -547,8 +542,10 @@ const getAllOS = async (callback) => {
     const response = await fetch("/getAll");
     const data = await response.json();
 
+    //console.log(data)
+
     if (data.status === "success") {
-      //console.log(data.message);
+      console.log(data.message);
       callback(data.status, data.json);
       loading("close");
     } else {
@@ -829,11 +826,13 @@ const createOS = async (e) => {
     const data = await response.json();
 
     alert(data.message);
+
     console.log(data.message);
+
     if (data.status === "success") {
       form.reset();
       showExistsNome("nulo");
-    }    
+    }
     addItemToListPrevious("formInputs");
     getUser()
     loading("close");
@@ -904,7 +903,7 @@ const copyListPrevious = async () => {
       const [ano, mes, dia] = usuario.dia_plantao.split('-')
       const dataBR = `${dia}/${mes}/${ano}`;
 
-      textDia = `do dia ${dataBR} - Plantão ${formatName.type_one(usuario.plantao)}`
+      textDia = `do dia ${dataBR} - Plantão ${formatName.type_one(usuario.nome_plantao)}`
 
     } catch (err) {
       console.error(err)
@@ -1084,12 +1083,12 @@ const limparList = async () => {
     console.error(err)
   }
 
-  if (usuario.save === 'no-salvo') {
+  if (usuario.saved === 'not saved') {
     textSave = `\n 
     ❗OBS: Identifiquei que você não salvou a lista.❗\n
     Se apertar em "OK", não vai conseguir recuperar a lista de OS atual! \n`
 
-  } else if (usuario.save === "atualizar") {
+  } else if (usuario.saved === "update") {
     textSave = `\n 
     ❗OBS: Identifiquei que você atualizou a lista, mas não salvou ela.❗\n
     Se apertar em "OK", vai perder o restante da lista que você ainda não salvou ! \n`
@@ -1109,15 +1108,19 @@ const limparList = async () => {
     const data = await response.json();
 
     console.log(data.message);
+    
     const lista_edit = document.querySelector(`#lista-edit`);
     if (!lista_edit.classList.contains("display-none")) {
       getAllOS(getAllOS_part);
     }
     loading("close");
     addCountItensToLogo("clear");
-    document.querySelector("#inpNomePlantao").value = ''
-    document.querySelector("#inpDiaPlantao").value = ''
-    getUser()
+    
+    getUser().then( () => {
+      document.querySelector("#inpNomePlantao").value = usuario.nome_plantao
+      document.querySelector("#inpDiaPlantao").value = usuario.dia_plantao
+    })
+
   } catch (error) {
     setTimeout(() => {
       alert("❌ Erro ao tenter deletar lista, tente novamente !");
@@ -1168,10 +1171,30 @@ const scrollToBottom = () => {
   }
 };
 
-const mudarDiaRelatorio = (obj) => {
-  usuario.dia_plantao = obj.value
-}
 
-const mudarPlantao = (obj) => {
-  usuario.plantao = obj.value
+const mudarPlantao = async (obj) => {
+  let op
+  if(obj.id === "inpNomePlantao"){
+    usuario.nome_plantao = obj.value
+    op = "name"
+  }else if (obj.id === "inpDiaPlantao"){
+    usuario.dia_plantao = obj.value
+    op = "dia"
+  }
+
+  try {
+    const response = await fetch(`/updateNameAndDay/${op}`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ plantao: obj.value.trim() }),
+    })
+
+    const result = await response.json()
+
+    console.log(result)
+  } catch (err) {
+    console.error(err)
+  }
 }

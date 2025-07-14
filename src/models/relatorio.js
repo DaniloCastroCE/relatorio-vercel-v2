@@ -15,14 +15,15 @@ const relatorioSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
   },
-  relatorio: {
-    type: Object, 
-    required: true,
+  itens: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
+    default: []
   },
-  temp_id: {
-    type: String,
-    default: null,
+  user: {
+    type: Object,
+    default: {},
   },
-}, {timestamps: true}) 
+
+}, { timestamps: true })
 
 module.exports = mongoose.model("Relatorio", relatorioSchema);

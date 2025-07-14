@@ -25,7 +25,12 @@ router.get("/", (req, res) => {
   return res.render('login', { status: null, message: null })
 })
 
-router.get("/getUser", checkAuth, (req, res) => {
+router.get("/getUser", checkAuth, async (req, res) => {
+  const usuario = await User.findById(req.session.user.id).populate('temp')
+
+  req.session.user.nome_plantao = usuario.temp.nome_plantao;
+  req.session.user.dia_plantao = usuario.temp.dia_plantao;
+  req.session.user.saved = usuario.temp.saved;
 
   if (!req.session.user) {
     return res.status(401).json({
@@ -36,7 +41,7 @@ router.get("/getUser", checkAuth, (req, res) => {
 
   return res.status(200).json({
     status: "success",
-    user: req.session.user
+    user: req.session.user,
   })
 })
 
@@ -62,9 +67,9 @@ router.get("/logout", (req, res) => {
 })
 
 router.get("/countDocuments", checkAuth, async (req, res) => {
-  const temp_id = req.session.user._id_temp || null
+  const user = req.session.user || null
   try {
-    const temp = await Temp.findById(temp_id)
+    const temp = await Temp.findById(user.temp_id)
     const qts = temp ? temp.itens.length : 0
 
     return res.status(200).json({
@@ -82,21 +87,14 @@ router.get("/countDocuments", checkAuth, async (req, res) => {
 });
 
 router.get("/getAll", checkAuth, async (req, res) => {
-  const temp_id = req.session.user._id_temp || null
+  const user = req.session.user || null
   try {
-    const temp = await Temp.findById(temp_id).populate({
-      path: 'itens',
-      options: { sort: { createdAt: 1 } }
-    })
-
-    const itens = temp ? temp.itens : []
-
-    if (itens.length === 0) req.session.user.save = 'no-salvo'
+    const temp = await Temp.findById(user.temp_id).populate('itens').sort({ createdAt: 1 })
 
     return res.status(200).json({
       status: "success",
       message: "Sucesso na consulta de itens!",
-      json: itens,
+      json: temp.itens,
     });
   } catch (err) {
     return res.status(400).json({
@@ -160,9 +158,9 @@ router.get("/checkNome/:nome", checkAuth, async (req, res) => {
 });
 
 router.get('/checkLista', checkAuth, async (req, res) => {
-  const temp_id = req.session.user._id_temp
+  const user = req.session.user || null
   try {
-    const temp = await Temp.findOne({ _id: temp_id }).populate('itens')
+    const temp = await Temp.findOne({ _id: user.temp_id }).populate('itens')
 
     if (!temp || !temp.itens) {
       return res.status(404).json({
@@ -200,51 +198,48 @@ router.get('/checkLista', checkAuth, async (req, res) => {
 })
 
 router.delete("/deleteAll", checkAuth, async (req, res) => {
-  const temp_id = req.session.user._id_temp
+  const user = req.session.user
   try {
 
-    if (req.session.user.save === "no-salvo") {
-      const temp = await Temp.findById(temp_id).populate('itens')
+    const temp = await Temp.findById(user.temp_id).populate('itens')
 
-      if (!temp || temp.itens.length < 1) {
-        return res.status(404).json({
-          status: "error",
-          message: "A lista está vazia !",
-        });
+    if (temp.itens.length < 1) {
+      return res.status(400).json({
+        status: "error",
+        message: "A lista está vazia !",
+      });
+    }
+
+    if (temp.saved === 'update') {
+      const relatorio = await Relatorio.findById(temp.relatorio_id).populate('itens')
+
+      if (relatorio) {
+        const relatorioIds = relatorio.itens.map(item => item._id.toString());
+        const diferentes = temp.itens.filter(item => !relatorioIds.includes(item._id.toString()));
+
+        if (diferentes.length > 0) {
+          const idsParaDeletar = diferentes.map(item => item._id);
+          await Item.deleteMany({ _id: { $in: idsParaDeletar } });
+        }
       }
-
-      if (temp && temp.itens && temp.itens.length > 0) {
-        const results = await Promise.allSettled(
-          temp.itens.map(item => Item.findByIdAndDelete(item._id))
-        );
-
-        results.forEach((resul, index) => {
-          if (resul.status === 'rejected') {
-            console.warn(`Falhou ao deletar item ${temp.itens[index]._id}:`, resul.reason);
-          }
-        });
+    } else if (temp.saved === 'not saved' || temp.saved === 'empty') {
+      const idsParaDeletar = temp.itens.map(item => item._id);
+      if (idsParaDeletar.length > 0) {
+        await Item.deleteMany({ _id: { $in: idsParaDeletar } });
       }
     }
 
-    const result = await Temp.findByIdAndDelete(temp_id);
-    await Relatorio.findOneAndUpdate(
-      { temp_id: req.session.user._id_temp },
-      { temp_id: null },
-      { new: true }
-    );
-    req.session.user._id_temp = null
-    req.session.user.save = 'no-salvo';
-    req.session.user.dia_plantao = new Date().toISOString().split('T')[0]
+    temp.itens = []
+    temp.relatorio_id = null
+    temp.nome_plantao = user.meu_plantao
+    temp.dia_plantao = new Date().toISOString().split('T')[0]
+    temp.saved = 'empty'
+    await temp.save()
 
-    const usuario = await User.findOne({ _id: req.session.user._id })
-    req.session.user.plantao = usuario.plantao
-
-    await User.updateOne({ _id: req.session.user._id }, { $set: { temp_id: null } })
-
+    console.log(`${user.nome} limpou o seu arquivo temp !`)
     return res.status(200).json({
       status: "success",
       message: "Sucesso em deletar todos os itens!",
-      result: result,
     });
   } catch (err) {
     console.error(err)
@@ -257,47 +252,31 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
 });
 
 router.put("/salvar", checkAuth, async (req, res) => {
-  const temp_id = req.session.user._id_temp
-  const user = req.session.user
-
-  const { dia_plantao, nome_plantao } = req.body
-
-  if (!dia_plantao || !nome_plantao) {
-    return res.status(422).json({
-      status: "error",
-      message: "❌ Obrigatorio preenchar os campos PLANTÃO e DIA",
-    });
-  }
+  const user = req.session.user || null
 
   try {
-    const temp = await Temp.findById(temp_id).populate('itens')
+    const temp = await Temp.findById(user.temp_id).populate('itens')
 
-    if (temp) {
-      const [ano, mes, dia] = dia_plantao.split('-')
+    if (!temp || temp.itens.length === 0) {
+      return res.status(200).json({
+        status: "error",
+        message: `❌ Não existe itens na lista para salvar no relatorio !`,
+      });
+    }
+    else if (temp) {
+      const [ano, mes, dia] = temp.dia_plantao.split('-')
       const dataBR = `${dia}/${mes}/${ano}`;
 
-      const relatorio = await Relatorio.findOne({ temp_id: temp_id })
+      const relatorio = await Relatorio.findById(temp.relatorio_id)
 
       if (relatorio) {
-        relatorio.nome_plantao = nome_plantao
-        relatorio.dia_plantao = dia_plantao
-        relatorio.relatorio = temp
-        relatorio.temp_id = temp_id
-        await relatorio.save();
-        req.session.user.save = 'salvo';
-        req.session.user.plantao = nome_plantao
-        req.session.user.dia_plantao = dia_plantao
+        relatorio.nome_plantao = temp.nome_plantao
+        relatorio.dia_plantao = temp.dia_plantao
+        relatorio.relatorio = temp.itens
+        await relatorio.save()
 
-        await Temp.updateOne(
-          { _id: temp_id },
-          {
-            $set: {
-              'user.dia_plantao': dia_plantao,
-              'user.plantao': nome_plantao,
-              'user.save': "salvo"
-            }
-          }
-        )
+        temp.saved = 'update'
+        await temp.save()
 
         return res.status(200).json({
           status: "success",
@@ -305,33 +284,29 @@ router.put("/salvar", checkAuth, async (req, res) => {
         });
 
       } else {
+
         const novoRelatorio = new Relatorio({
-          nome_plantao,
-          dia_plantao,
-          relatorio: temp,
-          temp_id: temp_id,
+          nome_plantao: temp.nome_plantao,
+          dia_plantao: temp.dia_plantao,
+          itens: temp.itens,
+          user: {
+            id: user.id,
+            nome: user.nome,
+          }
         })
         await novoRelatorio.save()
 
-        await Temp.updateOne(
-          { _id: temp_id },
-          {
-            $set: {
-              'user.dia_plantao': dia_plantao,
-              'user.plantao': nome_plantao,
-              'user.save': "salvo"
-            }
-          }
-        )
-        req.session.user.dia_plantao = dia_plantao
-        req.session.user.plantao = nome_plantao
-        req.session.user.save = 'salvo';
+        temp.saved = 'saved'
+        temp.relatorio_id = novoRelatorio._id
+        await temp.save()
+
         console.log(`${user.nome} salvou o relatorio do dia ${dataBR}`)
         return res.status(201).json({
           status: "success",
           message: `✅ Relatorio dia ${dataBR}, foi salvo com sucesso !`,
         });
       }
+
 
     } else {
       return res.status(404).json({
@@ -352,16 +327,10 @@ router.put("/salvar", checkAuth, async (req, res) => {
 })
 
 router.delete("/delete/:id", checkAuth, async (req, res) => {
+  const user = req.session.user || null
   try {
     const { id } = req.params;
     const itemDeletado = await Item.findByIdAndDelete(id);
-
-    await Temp.findByIdAndUpdate(
-      req.session.user._id_temp,
-      {
-        $pull:
-          { itens: id }
-      })
 
     if (!itemDeletado) {
       return res.status(404).json({
@@ -370,13 +339,22 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
       });
     }
 
-    if (req.session.user.save === "salvo") {
-      req.session.user.save = "atualizar"
-      await Temp.updateOne(
-        { _id: req.session.user._id_temp },
+    await Temp.findByIdAndUpdate(
+      user.temp_id,
+      {
+        $pull:
+          { itens: id }
+      })
+
+
+    if (user.saved === "saved") {
+      req.session.user.saved = "update"
+
+      await Temp.findOneAndUpdate(
+        { _id: user.temp_id },
         {
           $set: {
-            'user.save': "atualizar"
+            saved: "update"
           }
         }
       )
@@ -409,47 +387,45 @@ router.post("/create", checkAuth, async (req, res) => {
 
   const item = {
     nome, zona, horario, contato, envio, os, obs, user: {
-      _id: user._id,
+      id: user.id,
       nome: user.nome,
-      email: user.email,
       plantao: user.plantao,
     }
   };
 
-  const novoItem = new Item(item);
+  try {
+    const temp = await Temp.findById(user.temp_id)
+    if (temp) {
+      const novoItem = new Item(item);
+      await novoItem.save();
 
-  await novoItem.save();
+      temp.itens.push(novoItem)
+      temp.saved = temp.saved === 'empty' || temp.saved === 'not saved' ? 'not saved' : 'update',
+        await temp.save()
 
-  let temp = await Temp.findById(user._id_temp)
+      return res.status(201).json({
+        status: "success",
+        message: `O item ${item.nome.trim().toUpperCase()} foi criado com sucesso !`,
+        item: novoItem,
+      })
 
-  if (!temp) {
-    temp = new Temp({
-      user: {
-        _id: user._id,
-        nome: user.nome,
-        email: user.email,
-        date_online: user.date_online,
-        plantao: user.plantao,
-        dia_plantao: user.dia_plantao,
-        save: "no-salvo",
-      },
-      itens: [novoItem._id],
-      _id_temp: user._id_temp,
-    })
-    req.session.user._id_temp = temp._id
-    await User.updateOne({ _id: user._id }, { $set: { temp_id: temp._id } })
-  } else {
-    temp.itens.push(novoItem)
-    if (req.session.user.save === "salvo") {
-      temp.user.save = "atualizar"
+    } else {
+      return res.status(500).json({
+        status: "error",
+        message: "Não existe o temp no usuario !",
+      })
     }
+
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erro interno !",
+      error: err
+    })
   }
 
-  if (req.session.user.save === "salvo") {
-    req.session.user.save = "atualizar"
-  }
 
-  await temp.save()
+
 
   return res.status(201).json({
     status: "success",
@@ -458,7 +434,82 @@ router.post("/create", checkAuth, async (req, res) => {
   });
 });
 
-router.post("/putNomeDiaPlantaoToTemp/", (req, res) => {
+router.get("/initTemp", async (req, res) => {
+  try {
+    const temp = await Temp.findById(req.session.user._id_temp)
+
+    if (temp) {
+      return res.status(200).json({
+        status: "success",
+        message: "Sucesso na requisição do nome e dia do plantão !",
+        obj: {
+          nome_plantao: temp.nome_plantao,
+          dia_plantao: temp.dia_plantao,
+        }
+      })
+    } else {
+      return res.status(200).json({
+        status: "success",
+        message: "Temp está null, mas a requisição foi enviada!",
+        obj: {
+          nome_plantao: req.session.user.plantao,
+          dia_plantao: new Date().toISOString().split('T')[0],
+        }
+      })
+    }
+
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erro interno !",
+      error: err,
+    })
+  }
+})
+
+router.post("/updateNameAndDay/:op", async (req, res) => {
+  const user = req.session.user || null
+  let { plantao } = req.body
+  const { op } = req.params
+
+  try {
+
+    const temp = await Temp.findById(user.temp_id)
+
+    if (op === "name") {
+      plantao = !plantao || typeof plantao === 'undefined' || plantao.trim() === "" ? user.meu_plantao : plantao.toUpperCase().trim()
+      req.session.user.nome_plantao = plantao // A linha não é necessario, o getUser ja atualiza
+      temp.nome_plantao = plantao
+      await temp.save()
+
+      return res.status(200).json({
+        status: "success",
+        message: `O nome do plantão (${temp.nome_plantao}) foi atualizado com sucesso !`
+      })
+    }
+
+    if (op === "dia") {
+      plantao = !plantao ? user.dia_plantao : plantao
+      req.session.user.dia_planto = plantao // A linha não é necessario, o getUser ja atualiza
+      temp.dia_plantao = plantao
+      await temp.save()
+
+      return res.status(200).json({
+        status: "success",
+        message: `O dia do plantão (${temp.dia_plantao}) foi atualizado com sucesso !`
+      })
+    }
+
+  } catch (err) {
+    return res.status(200).json({
+      status: "errir",
+      message: "Error interno !",
+      error: err
+    })
+  }
+
+
+
 
 })
 
@@ -511,8 +562,8 @@ router.post("/register", async (req, res) => {
     const newUser = new User({
       nome,
       email,
-      plantao,
-      senha
+      senha,
+      plantao
     })
 
     await newUser.save()
@@ -535,63 +586,60 @@ router.post("/register", async (req, res) => {
 })
 
 router.post("/login", async (req, res) => {
-  const { email, senha } = req.body
+  const { email, senha } = req.body;
 
   if (!email || !senha) {
     return res.render("login", {
       status: "error",
-      message: "É necessario preencher todos os campos!"
-    })
+      message: "É necessário preencher todos os campos!"
+    });
   }
 
   try {
-
-    const usuario = await User.findOne({ email: email.toLowerCase().trim() })
+    const usuario = await User.findOne({ email: email.toLowerCase().trim() }).populate('temp');
 
     if (!usuario) {
       return res.render("login", {
         status: "error",
-        message: "Úsuario não encontrado !"
-      })
+        message: "Usuário não encontrado!"
+      });
     }
 
     if (!(await usuario.compareSenha(senha))) {
       return res.render("login", {
         status: "error",
-        message: "Senha incorreta !"
-      })
+        message: "Senha incorreta!"
+      });
     }
-
-    const temp = await Temp.findById(usuario.temp_id)
 
     req.session.user = {
-      _id: usuario._id,
+      id: usuario._id,
       nome: usuario.nome,
-      plantao: temp ? temp.user.plantao : usuario.plantao,
       email: usuario.email,
-      date_online: new Date(),
-      _id_temp: usuario.temp_id,
-      dia_plantao: temp ? temp.user.dia_plantao : new Date().toISOString().split('T')[0],
-      save: temp ? temp.user.save : 'no-salvo',
+      meu_plantao: usuario.plantao,
+      nome_plantao: usuario.temp.nome_plantao,
+      dia_plantao: usuario.temp.dia_plantao,
+      saved: usuario.temp.saved,
+      temp_id: usuario.temp._id,
     }
 
-    console.log(`${usuario.nome.toUpperCase()} está online !`)
-    return res.redirect('/relatorio')
+    console.log(`${usuario.nome.toUpperCase()} está online!`);
+    return res.redirect('/relatorio');
 
   } catch (err) {
-    console.error(err.message)
+    console.error(err);
     return res.render("login", {
       status: "error",
-      message: "Erro interno, tente novamente !"
-    })
+      message: "Erro interno, tente novamente!"
+    });
   }
-
-})
+});
 
 router.put("/update/:id", checkAuth, async (req, res) => {
   try {
     const id = req.params.id;
     const { nome, zona, horario, contato, envio, os, obs, exec } = req.body;
+    const user = req.session.user || null
 
     if (!nome) {
       return res.status(422).json({
@@ -616,13 +664,14 @@ router.put("/update/:id", checkAuth, async (req, res) => {
       });
     }
 
-    if (req.session.user.save === "salvo") {
-      req.session.user.save = "atualizar"
-      await Temp.updateOne(
-        { _id: req.session.user._id_temp },
+    if (user.saved === "saved") {
+      req.session.user.saved = "update"
+
+      await Temp.findOneAndUpdate(
+        { _id: user.temp_id },
         {
           $set: {
-            'user.save': "atualizar"
+            saved: "update"
           }
         }
       )
