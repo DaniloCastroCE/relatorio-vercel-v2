@@ -612,13 +612,21 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    if(usuario.temp.itens.length === 0) {
+      const att = await Temp.findOneAndUpdate(
+        {_id: usuario.temp._id}, 
+        {$set: {dia_plantao: new Date().toISOString().split('T')[0]} },
+        {new: true}
+      )
+    }
+
     req.session.user = {
       id: usuario._id,
       nome: usuario.nome,
       email: usuario.email,
       meu_plantao: usuario.plantao,
       nome_plantao: usuario.temp.nome_plantao,
-      dia_plantao: usuario.temp.dia_plantao,
+      dia_plantao: usuario.temp.itens.length === 0 ? new Date().toISOString().split('T')[0] : usuario.temp.dia_plantao,
       saved: usuario.temp.saved,
       temp_id: usuario.temp._id,
     }
