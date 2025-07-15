@@ -766,7 +766,12 @@ const atualizarItem = async (id, novoItem) => {
 const deletarItem = async (event, id, nome) => {
   event.preventDefault();
 
-  if (!confirm(`Deseja realmente deletar o item ${nome}?`)) return;
+  let textSave = ''
+  if(usuario.saved !== 'empty' && usuario.saved !== 'not saved') {
+    textSave = `\n\n⚠️ Ao deletar, o item também será removido do relatório salvo. ⚠️`
+  }
+  
+  if (!confirm(`Deseja realmente deletar o item ${nome}?${textSave}`)) return;
   loading("open");
 
   try {
