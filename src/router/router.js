@@ -277,7 +277,6 @@ router.put("/salvar", checkAuth, async (req, res) => {
 
         temp.saved = 'saved'
         await temp.save()
-
         return res.status(200).json({
           status: "success",
           message: `✅ Relatorio do dia ${dataBR}, foi atualizado com sucesso !`,
@@ -288,7 +287,7 @@ router.put("/salvar", checkAuth, async (req, res) => {
         const novoRelatorio = new Relatorio({
           nome_plantao: temp.nome_plantao,
           dia_plantao: temp.dia_plantao,
-          itens: temp.itens,
+          itens: temp.itens.map(item => item._id),
           user: {
             id: user.id,
             nome: user.nome,
@@ -339,26 +338,21 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
       });
     }
 
-    await Temp.findByIdAndUpdate(
+    const novoTemp = await Temp.findByIdAndUpdate(
       user.temp_id,
       {
         $pull:
           { itens: id }
+      },
+      { new: true}
+    )  
+
+    await Relatorio.findByIdAndUpdate(
+      novoTemp.relatorio_id,
+      {
+        $pull:
+          { itens: id }
       })
-
-
-    if (user.saved === "saved") {
-      req.session.user.saved = "update"
-
-      await Temp.findOneAndUpdate(
-        { _id: user.temp_id },
-        {
-          $set: {
-            saved: "update"
-          }
-        }
-      )
-    }
 
     return res.status(200).json({
       status: "success",
@@ -613,7 +607,7 @@ router.post("/login", async (req, res) => {
     }
 
     if(usuario.temp.itens.length === 0) {
-      const att = await Temp.findOneAndUpdate(
+      await Temp.findOneAndUpdate(
         {_id: usuario.temp._id}, 
         {$set: {dia_plantao: new Date().toISOString().split('T')[0]} },
         {new: true}
@@ -671,21 +665,7 @@ router.put("/update/:id", checkAuth, async (req, res) => {
         item: itemAtualizado,
       });
     }
-  
-    /* Esse IF não é necessário, estou salvando no relatorio o ID do item
-    if (user.saved === "saved") {
-      req.session.user.saved = "update"
-
-      await Temp.findOneAndUpdate(
-        { _id: user.temp_id },
-        {
-          $set: {
-            saved: "update"
-          }
-        }
-      )
-    }*/
-
+    
     return res.status(200).json({
       status: "success",
       message: `O Item com ID ${id} foi atualizado com sucesso!`,
@@ -793,7 +773,6 @@ router.get("/api/get-reports", async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: "Requisiçao bem sucedida dos reports!",
-      length: relatorios.length,
       relatorios: relatorios,
     })
 
@@ -814,8 +793,7 @@ router.get("/api/get-itens", async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: "Requisiçao bem sucedida dos itens!",
-      length: itens.length,
-      itens: itens,
+      relatorios: itens,
     })
 
   } catch (err) {
