@@ -671,7 +671,8 @@ router.put("/update/:id", checkAuth, async (req, res) => {
         item: itemAtualizado,
       });
     }
-
+  
+    /* Esse IF não é necessário, estou salvando no relatorio o ID do item
     if (user.saved === "saved") {
       req.session.user.saved = "update"
 
@@ -683,7 +684,7 @@ router.put("/update/:id", checkAuth, async (req, res) => {
           }
         }
       )
-    }
+    }*/
 
     return res.status(200).json({
       status: "success",
