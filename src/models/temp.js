@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const {setDateNowInputBrazil} = require('../utils/dataNowInput')
 
 const tempSchema = new mongoose.Schema({
   user: {
@@ -17,7 +18,7 @@ const tempSchema = new mongoose.Schema({
   },
   dia_plantao: {
     type: String,
-    default: new Date().toISOString().split('T')[0],
+    default: setDateNowInputBrazil(),
     lowercase: true,
     trim: true,
   },

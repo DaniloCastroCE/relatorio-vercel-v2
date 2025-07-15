@@ -6,6 +6,7 @@ const User = require('../models/user')
 const Temp = require('../models/temp')
 const Relatorio = require('../models/relatorio')
 const validator = require("validator")
+const { setDateNowInputBrazil } = require('../utils/dataNowInput')
 
 const checkAuth = (req, res, next) => {
   if (req.session.user) {
@@ -232,7 +233,7 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
     temp.itens = []
     temp.relatorio_id = null
     temp.nome_plantao = user.meu_plantao
-    temp.dia_plantao = new Date().toISOString().split('T')[0]
+    temp.dia_plantao = setDateNowInputBrazil()
     temp.saved = 'empty'
     await temp.save()
 
@@ -418,14 +419,6 @@ router.post("/create", checkAuth, async (req, res) => {
     })
   }
 
-
-
-
-  return res.status(201).json({
-    status: "success",
-    message: `O Item (${nome.toUpperCase()}) foi adicionado a lista com sucesso !`,
-    obj: item,
-  });
 });
 
 router.get("/initTemp", async (req, res) => {
@@ -447,7 +440,7 @@ router.get("/initTemp", async (req, res) => {
         message: "Temp está null, mas a requisição foi enviada!",
         obj: {
           nome_plantao: req.session.user.plantao,
-          dia_plantao: new Date().toISOString().split('T')[0],
+          dia_plantao: setDateNowInputBrazil(),
         }
       })
     }
@@ -609,7 +602,7 @@ router.post("/login", async (req, res) => {
     if(usuario.temp.itens.length === 0) {
       await Temp.findOneAndUpdate(
         {_id: usuario.temp._id}, 
-        {$set: {dia_plantao: new Date().toISOString().split('T')[0]} },
+        {$set: {dia_plantao: setDateNowInputBrazil()} },
         {new: true}
       )
     }
