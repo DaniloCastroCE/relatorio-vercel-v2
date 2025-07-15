@@ -272,7 +272,7 @@ router.put("/salvar", checkAuth, async (req, res) => {
       if (relatorio) {
         relatorio.nome_plantao = temp.nome_plantao
         relatorio.dia_plantao = temp.dia_plantao
-        relatorio.itens = temp.itens
+        relatorio.itens = temp.itens.map(item => item._id)
         await relatorio.save()
 
         temp.saved = 'saved'
