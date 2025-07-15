@@ -126,7 +126,7 @@ router.get("/get/:id", checkAuth, async (req, res) => {
 router.get("/checkNome/:nome", checkAuth, async (req, res) => {
   try {
     const nome = req.params.nome.toLowerCase().trim();
-    const temp_id = req.session.user._id_temp
+    const user = req.session.user
 
     if (!nome) {
       return res.status(200).json({
@@ -135,8 +135,8 @@ router.get("/checkNome/:nome", checkAuth, async (req, res) => {
         exists: false,
       });
     }
-    const temp = await Temp.findById(temp_id).populate('itens')
-    const nomeList = temp ? temp.itens.some(item => item.nome === nome) : false
+    const temp = await Temp.findById(user.temp_id).populate('itens')
+    const nomeList = temp ? temp.itens.find(item => item.nome === nome) : null
 
     if (!nomeList) {
       return res.status(200).json({
