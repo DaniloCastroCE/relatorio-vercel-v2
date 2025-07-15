@@ -275,7 +275,7 @@ router.put("/salvar", checkAuth, async (req, res) => {
         relatorio.relatorio = temp.itens
         await relatorio.save()
 
-        temp.saved = 'update'
+        temp.saved = 'saved'
         await temp.save()
 
         return res.status(200).json({
