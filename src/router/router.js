@@ -462,13 +462,20 @@ router.post("/updateNameAndDay/:op", async (req, res) => {
   try {
 
     const temp = await Temp.findById(user.temp_id)
+    const relatorio = await Relatorio.findById(temp.relatorio_id)
 
     if (op === "name") {
       plantao = !plantao || typeof plantao === 'undefined' || plantao.trim() === "" ? user.meu_plantao : plantao.toUpperCase().trim()
       req.session.user.nome_plantao = plantao // A linha não é necessario, o getUser ja atualiza
       temp.nome_plantao = plantao
+      
       await temp.save()
-
+      
+      if(relatorio) {
+        relatorio.nome_plantao = plantao
+        await relatorio.save()
+      }
+      
       return res.status(200).json({
         status: "success",
         message: `O nome do plantão (${temp.nome_plantao}) foi atualizado com sucesso !`
@@ -480,7 +487,12 @@ router.post("/updateNameAndDay/:op", async (req, res) => {
       req.session.user.dia_planto = plantao // A linha não é necessario, o getUser ja atualiza
       temp.dia_plantao = plantao
       await temp.save()
-
+      
+      if(relatorio) {
+        relatorio.dia_plantao = plantao
+        await relatorio.save()
+      }
+      
       return res.status(200).json({
         status: "success",
         message: `O dia do plantão (${temp.dia_plantao}) foi atualizado com sucesso !`
@@ -494,11 +506,8 @@ router.post("/updateNameAndDay/:op", async (req, res) => {
       error: err
     })
   }
-
-
-
-
 })
+
 
 router.post("/register", async (req, res) => {
 
