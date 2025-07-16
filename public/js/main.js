@@ -767,10 +767,10 @@ const deletarItem = async (event, id, nome) => {
   event.preventDefault();
 
   let textSave = ''
-  if(usuario.saved !== 'empty' && usuario.saved !== 'not saved') {
+  if (usuario.saved !== 'empty' && usuario.saved !== 'not saved') {
     textSave = `\n\n⚠️ Ao deletar, o item também será removido do relatório salvo. ⚠️`
   }
-  
+
   if (!confirm(`Deseja realmente deletar o item ${nome}?${textSave}`)) return;
   loading("open");
 
@@ -778,17 +778,20 @@ const deletarItem = async (event, id, nome) => {
     const response = await fetch(`/delete/${id}`, {
       method: "DELETE",
     });
+    
+    const data = await response.json();
 
-    if (!response.ok) {
+    if (response.ok) {
+      getUser()
+      console.log(data.message);
+      getAllOS(getAllOS_part);
+      addCountItensToLogo("-");
+      
+    } else {
       throw new Error(`Erro ao deletar: ${response.statusText}`);
     }
+    loading("close");    
 
-    const data = await response.json();
-    getUser()
-    console.log(data.message);
-    getAllOS(getAllOS_part);
-    loading("close");
-    addCountItensToLogo("-");
   } catch (error) {
     setTimeout(() => {
       alert("❌ Erro em cancelar item, tente novamente !");
@@ -824,28 +827,33 @@ const createOS = async (e) => {
       body: JSON.stringify(os),
     });
 
-    if (!response.ok) {
-      throw new Error(`Erro ao tentar criar item: ${response.statusText}`);
-    }
-
     const data = await response.json();
-
-    alert(data.message);
-
-    console.log(data.message);
-
-    if (data.status === "success") {
+    if (response.ok) {
+      alert(data.message)
+      console.log(data.message)
       form.reset();
       showExistsNome("nulo");
+      addItemToListPrevious("formInputs");
+      getUser()
+      addCountItensToLogo("+");
+      
+    } 
+    else {
+      if (data.status === "error" && data.message.includes("reloger")) {
+        alert(data.message)
+        window.location.href = "\logout"
+        return
+
+      } else {
+        alert(data.message)
+      }
     }
-    addItemToListPrevious("formInputs");
-    getUser()
+    
     loading("close");
 
-    addCountItensToLogo("+");
   } catch (error) {
     setTimeout(() => {
-      alert("❌ Erro ao tentar criar item, tente novamente !");
+      alert(`❌ Erro ao tentar criar item, tente novamente !`);
       console.error(`Erro: ${error}`);
       loading("close");
     });
@@ -1113,15 +1121,15 @@ const limparList = async () => {
     const data = await response.json();
 
     console.log(data.message);
-    
+
     const lista_edit = document.querySelector(`#lista-edit`);
     if (!lista_edit.classList.contains("display-none")) {
       getAllOS(getAllOS_part);
     }
     loading("close");
     addCountItensToLogo("clear");
-    
-    getUser().then( () => {
+
+    getUser().then(() => {
       document.querySelector("#inpNomePlantao").value = usuario.nome_plantao
       document.querySelector("#inpDiaPlantao").value = usuario.dia_plantao
     })
@@ -1179,10 +1187,10 @@ const scrollToBottom = () => {
 
 const mudarPlantao = async (obj) => {
   let op
-  if(obj.id === "inpNomePlantao"){
+  if (obj.id === "inpNomePlantao") {
     usuario.nome_plantao = obj.value
     op = "name"
-  }else if (obj.id === "inpDiaPlantao"){
+  } else if (obj.id === "inpDiaPlantao") {
     usuario.dia_plantao = obj.value
     op = "dia"
   }

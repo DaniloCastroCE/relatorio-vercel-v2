@@ -209,10 +209,12 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
         status: "error",
         message: "A lista está vazia !",
       });
+    } else if (temp.itens.length === 0) {
+      temp.saved = 'empty'
     }
 
+    const relatorio = await Relatorio.findById(temp.relatorio_id).populate('itens')
     if (temp.saved === 'update') {
-      const relatorio = await Relatorio.findById(temp.relatorio_id).populate('itens')
 
       if (relatorio) {
         const relatorioIds = relatorio.itens.map(item => item._id.toString());
@@ -228,6 +230,10 @@ router.delete("/deleteAll", checkAuth, async (req, res) => {
       if (idsParaDeletar.length > 0) {
         await Item.deleteMany({ _id: { $in: idsParaDeletar } });
       }
+    }
+
+    if (relatorio && relatorio.itens.length === 0) {
+      await relatorio.deleteOne()
     }
 
     temp.itens = []
@@ -345,15 +351,25 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
         $pull:
           { itens: id }
       },
-      { new: true}
-    )  
+      { new: true }
+    )
 
-    await Relatorio.findByIdAndUpdate(
-      novoTemp.relatorio_id,
-      {
-        $pull:
-          { itens: id }
-      })
+    if (novoTemp.itens.length === 0) {
+      await Relatorio.deleteOne({ _id: novoTemp.relatorio_id })
+      console.log(`Relatorio com ID ${novoTemp.relatorio_id} foi deletado !`)
+      novoTemp.relatorio_id = null
+      novoTemp.saved = 'empty'
+      await novoTemp.save()
+    
+    } 
+    else {
+      await Relatorio.findByIdAndUpdate(
+        novoTemp.relatorio_id,
+        {
+          $pull:
+            { itens: id }
+        })
+    }
 
     return res.status(200).json({
       status: "success",
@@ -390,6 +406,7 @@ router.post("/create", checkAuth, async (req, res) => {
 
   try {
     const temp = await Temp.findById(user.temp_id)
+
     if (temp) {
       const novoItem = new Item(item);
       await novoItem.save();
@@ -403,13 +420,13 @@ router.post("/create", checkAuth, async (req, res) => {
         message: `O item ${item.nome.trim().toUpperCase()} foi criado com sucesso !`,
         item: novoItem,
       })
-
     } else {
-      return res.status(500).json({
+      return res.status(400).json({
         status: "error",
-        message: "Não existe o temp no usuario !",
+        message: "Usuario não possui o arquivo temp.\nO sistema vai forçar um reloger para criar novamente !",
       })
     }
+
 
   } catch (err) {
     return res.status(500).json({
@@ -468,14 +485,14 @@ router.post("/updateNameAndDay/:op", async (req, res) => {
       plantao = !plantao || typeof plantao === 'undefined' || plantao.trim() === "" ? user.meu_plantao : plantao.toUpperCase().trim()
       req.session.user.nome_plantao = plantao // A linha não é necessario, o getUser ja atualiza
       temp.nome_plantao = plantao
-      
+
       await temp.save()
-      
-      if(relatorio) {
+
+      if (relatorio) {
         relatorio.nome_plantao = plantao
         await relatorio.save()
       }
-      
+
       return res.status(200).json({
         status: "success",
         message: `O nome do plantão (${temp.nome_plantao}) foi atualizado com sucesso !`
@@ -487,12 +504,12 @@ router.post("/updateNameAndDay/:op", async (req, res) => {
       req.session.user.dia_planto = plantao // A linha não é necessario, o getUser ja atualiza
       temp.dia_plantao = plantao
       await temp.save()
-      
-      if(relatorio) {
+
+      if (relatorio) {
         relatorio.dia_plantao = plantao
         await relatorio.save()
       }
-      
+
       return res.status(200).json({
         status: "success",
         message: `O dia do plantão (${temp.dia_plantao}) foi atualizado com sucesso !`
@@ -507,7 +524,6 @@ router.post("/updateNameAndDay/:op", async (req, res) => {
     })
   }
 })
-
 
 router.post("/register", async (req, res) => {
 
@@ -608,11 +624,23 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    if(usuario.temp.itens.length === 0) {
+    if (!usuario.temp) {
+      const temp = new Temp({
+        user: {
+          id: usuario._id,
+          nome: usuario.nome,
+        },
+        nome_plantao: usuario.plantao
+      });
+      usuario.temp = temp._id;
+      await temp.save();
+      await usuario.save()
+    }
+    else if (usuario.temp.itens.length === 0) {
       await Temp.findOneAndUpdate(
-        {_id: usuario.temp._id}, 
-        {$set: {dia_plantao: setDateNowInputBrazil()} },
-        {new: true}
+        { _id: usuario.temp._id },
+        { $set: { dia_plantao: setDateNowInputBrazil() } },
+        { new: true }
       )
     }
 
@@ -667,7 +695,7 @@ router.put("/update/:id", checkAuth, async (req, res) => {
         item: itemAtualizado,
       });
     }
-    
+
     return res.status(200).json({
       status: "success",
       message: `O Item com ID ${id} foi atualizado com sucesso!`,
@@ -775,7 +803,8 @@ router.get("/api/get-reports", async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: "Requisiçao bem sucedida dos reports!",
-      relatorios: relatorios,
+      length: relatorios.length,
+      reports: relatorios,
     })
 
   } catch (err) {
@@ -795,7 +824,8 @@ router.get("/api/get-itens", async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: "Requisiçao bem sucedida dos itens!",
-      relatorios: itens,
+      length: itens.length,
+      itens: itens,
     })
 
   } catch (err) {
@@ -803,6 +833,93 @@ router.get("/api/get-itens", async (req, res) => {
       status: "error",
       message: "Erro interno",
       error: err.message
+    })
+  }
+})
+
+router.get("/api/get-temps", async (req, res) => {
+  try {
+
+    const temps = await Temp.find({}).sort({ createdAt: 1 })
+
+    return res.status(200).json({
+      status: 'success',
+      message: "Requisiçao bem sucedida dos temps!",
+      length: temps.length,
+      temps: temps,
+    })
+
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erro interno",
+      error: err.message
+    })
+  }
+})
+
+router.get("/api/get-infoUser/:email", async (req, res) => {
+  const { email } = req.params
+
+  try {
+    const user = await User.findOne({ email: email }).populate(
+      {
+        path: "temp",
+        select: "itens",
+        populate: {
+          path: "itens"
+        }
+      }
+    )
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: `Usuário não encontrado com email ${email.toUpperCase()}`,
+      })
+    }
+
+    const relatorios = await Relatorio
+      .find({ "user.id": user.id })
+      .populate("itens")
+      .select("dia_plantao nome_plantao itens")
+      .lean()
+      .sort({ createdAt: -1 })
+
+    if (!relatorios) {
+      return res.status(404).json({
+        status: "error",
+        message: `Usuário ${user.nome.toUpperCase()} com email ${email.toUpperCase()} não criou relatorio !`,
+      })
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      message: "Requisiçao bem sucedida !",
+      json: {
+        user: {
+          nome: user.nome,
+          email: user.email,
+          _id: user.id,
+        },
+        temp: {
+          _id: user.temp._id,
+          length_itens: user.temp.itens.length,
+          itens: user.temp.itens,
+        },
+        relatorios: {
+          length: relatorios.length,
+          json: relatorios,
+        }
+      },
+    })
+
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erro interno",
+      error: err.messge,
+      stack: err.stack,
     })
   }
 })

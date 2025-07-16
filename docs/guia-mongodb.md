@@ -174,6 +174,158 @@ db.stats()
 db.dropDatabase()
 ```
 
+### 🔹 18. Remover item de um array (`$pull`)
+
+**Exemplo:**
+```js
+db.temps.updateOne(
+  { _id: ObjectId("64e123abc123abc123abc123") },
+  { $pull: { itens: ObjectId("64e456def456def456def456") } }
+)
+```
+> **Descrição:** Remove do array `itens` o valor igual ao `ObjectId` informado.
+
+---
+
+### 🔹 19. `$push` - Adicionar item a um array
+
+```js
+db.temps.updateOne(
+  { _id: ObjectId("64e123abc123abc123abc123") },
+  { $push: { itens: ObjectId("64e789ghi789ghi789ghi789") } }
+)
+```
+> **Descrição:** Adiciona um novo valor ao final do array `itens`.
+
+---
+
+### 🔹 20. `$addToSet` - Adicionar item **sem duplicar**
+
+```js
+db.temps.updateOne(
+  { _id: ObjectId("64e123abc123abc123abc123") },
+  { $addToSet: { itens: ObjectId("64e789ghi789ghi789ghi789") } }
+)
+```
+> **Descrição:** Adiciona o valor **somente se ele não existir** no array.
+
+---
+
+### 🔹 21. `$unset` - Remover campo
+
+```js
+db.usuarios.updateOne(
+  { nome: "Danilo" },
+  { $unset: { idade: "" } }
+)
+```
+> **Descrição:** Remove o campo `idade` do documento.
+
+---
+
+### 🔹 22. `$inc` - Incrementar valor
+
+```js
+db.usuarios.updateOne(
+  { nome: "Danilo" },
+  { $inc: { idade: 1 } }
+)
+```
+> **Descrição:** Incrementa o campo `idade` em +1.
+
+---
+
+### 🔹 23. `$rename` - Renomear campo
+
+```js
+db.usuarios.updateOne(
+  { nome: "Danilo" },
+  { $rename: { "idade": "anos" } }
+)
+```
+> **Descrição:** Renomeia o campo `idade` para `anos`.
+
+---
+
+### 🔹 24. `$set` com `updateOne` - Atualizar campo
+
+```js
+db.usuarios.updateOne(
+  { nome: "Danilo" },
+  { $set: { ativo: false } }
+)
+```
+> **Descrição:** Atualiza (ou cria) o campo `ativo` com o valor `false`.
+
+---
+
+### 🔹 25. Excluir campo de todos os documentos
+
+```js
+db.usuarios.updateMany(
+  {},
+  { $unset: { idade: "" } }
+)
+```
+> **Descrição:** Remove o campo `idade` de todos os documentos na coleção.
+
+
+### 🔹 26. Exemplos práticos do `deleteMany`
+
+**Deletar por status:**  
+```js
+db.usuarios.deleteMany({ status: "inativo" })
+```  
+> Apaga todos os usuários com `status` igual a `"inativo"`.
+
+---
+
+**Deletar por data (antes de uma data específica):**  
+```js
+db.logs.deleteMany({ createdAt: { $lt: new Date("2024-01-01") } })
+```  
+> Remove todos os logs criados antes de 1º de janeiro de 2024.
+
+---
+
+**Deletar por múltiplos filtros:**  
+```js
+db.pedidos.deleteMany({ status: "cancelado", pago: false })
+```  
+> Remove pedidos cancelados e não pagos.
+
+---
+
+**Deletar onde campo é `null`:**  
+```js
+db.usuarios.deleteMany({ email: null })
+```  
+> Remove usuários sem email cadastrado.
+
+---
+
+**Deletar documentos sem campo (`$exists`):**  
+```js
+db.produtos.deleteMany({ preco: { $exists: false } })
+```  
+> Remove produtos que não têm o campo `preco`.
+
+---
+
+**Deletar usando regex:**  
+```js
+db.usuarios.deleteMany({ email: /@teste\.com$/ })
+```  
+> Remove usuários com email terminando em `@teste.com`.
+
+---
+
+**Deletar todos (zerar a coleção):**  
+```js
+db.usuarios.deleteMany({})
+```  
+> Remove todos os documentos, mantendo a coleção vazia.
+
 ## 🔗 Links úteis
 - 📘 **Documentação Oficial:**  
   [https://www.mongodb.com/docs/](https://www.mongodb.com/docs/)
