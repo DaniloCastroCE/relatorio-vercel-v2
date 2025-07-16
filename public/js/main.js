@@ -1211,3 +1211,27 @@ const mudarPlantao = async (obj) => {
     console.error(err)
   }
 }
+
+
+const pesquisa = async (obj) => {
+
+  try {
+
+    if(obj.id === "my-reports"){
+      const response = await fetch(`/api/get-infoUser/${usuario.email}`)
+  
+      const result = await response.json()
+  
+      if(response.status === "success"){
+        console.log(result.json)
+      }else {
+        console.log("Erro na requisição\n",result)
+      }
+    }
+
+
+  } catch (err) {
+    console.error(`Erro na pesquisa\nErro: ${err}`)
+  }
+
+}

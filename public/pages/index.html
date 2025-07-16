@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="./css/footer.css">
     <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/relatorios.css">
 </head>
 
 <body>
@@ -30,7 +31,7 @@
         <div class="menu">
             <nav onclick="clickMenu(this.id)" id="nav-add">Adicionar</nav>
             <nav onclick="clickMenu(this.id)" id="nav-list">Lista</nav>
-            <!--<nav onclick="clickMenu(this.id)" id="nav-reports">Relatórios</nav>-->
+            <nav onclick="clickMenu(this.id)" id="nav-reports">Pesquisar</nav>
         </div>
         <div class="user">
             <div class="info-user">
@@ -170,7 +171,38 @@
             <div class="lista-edit display-none itens-section" id="lista-edit"></div>
         </section>
         <secction class="section-relatorios">
-            <div class="relatorios display-none itens-section"></div>
+            <div class="relatorios display-none itens-section">
+                <div class="btns-relatorios">
+                    <div class="btn-card" id="my-reports" onclick="pesquisa(this)">
+                        <img src="./img/reports-icon.png" alt="my reports">
+                        <div class="divTitulo">
+                            <p class="titulo">Meus Relatórios</p>
+                        </div>
+                    </div>
+                    <div class="btn-card" id="all-reports" onclick="pesquisa(this)">
+                        <img src="./img/reports-all-icon.png" alt="all reports">
+                        <div class="divTitulo">
+                            <p class="titulo">Todos os Relatórios</p>
+                        </div>
+                    </div>
+                    <div class="btn-card" id="itens" onclick="pesquisa(this)">
+                        <img src="./img/itens-icon.png" alt="all itens">
+                        <div class="divTitulo">
+                            <p class="titulo">Todos os Registros</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="explicacao-opcoes">
+                    <h3>Sobre as opções</h3>
+                    <ul>
+                        <li>📊 <strong>Meus Relatórios:</strong> mostra apenas os relatórios criados por você.</li>
+                        <li>📁 <strong>Todos os Relatórios:</strong> exibe todos os relatórios disponíveis no sistema.
+                        </li>
+                        <li>📝 <strong>Todos os Registros:</strong> lista todos os registros detalhados dentro dos
+                            relatórios.</li>
+                    </ul>
+                </div>
+            </div>
         </secction>
     </main>
     <footer>Desenvolvido por: @DaniloCastroCE (2025)</footer>
