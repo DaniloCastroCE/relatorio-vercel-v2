@@ -1223,7 +1223,7 @@ const pesquisa = async (obj) => {
 
       const result = await response.json();
 
-      if (response.status === "success") {
+      if (result.status === "success") {
         console.log(result.json);
         alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
       } else {
