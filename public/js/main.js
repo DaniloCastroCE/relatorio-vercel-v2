@@ -1217,6 +1217,7 @@ const mudarPlantao = async (obj) => {
 };
 
 const pesquisa = async (obj) => {
+  loading("open")
   try {
     if (obj.id === "my-reports") {
       const response = await fetch(`/api/get-infoUser/${usuario.email}`);
@@ -1229,9 +1230,11 @@ const pesquisa = async (obj) => {
       } else {
         console.log("Erro na requisição\n", result);
       }
+      loading("close")
     }
   } catch (err) {
     console.error(`Erro na pesquisa\nErro: ${err}`);
+    loading("close")
   }
 };
 
