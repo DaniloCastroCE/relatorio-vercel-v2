@@ -1226,12 +1226,13 @@ const pesquisa = async (obj) => {
 
       if (result.status === "success") {
         console.log(result.json);
-        alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
+        //alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
       } else {
         console.log("Erro na requisição\n", result);
       }
-      loading("close")
     }
+    alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
+    loading("close")
   } catch (err) {
     console.error(`Erro na pesquisa\nErro: ${err}`);
     loading("close")
@@ -1273,6 +1274,11 @@ const onsubmit_sendEmail = async (e) => {
       to: document.getElementById('to').value,
       subject: document.getElementById('subject').value,
     };
+
+    if(!confirm(`Tem certeza que deseja enviar o email ?\n\nPara: ${data.to}`)){
+      loading("close");
+      return
+    }
   
     const res = await fetch('/sendEmail', {
       method: 'POST',

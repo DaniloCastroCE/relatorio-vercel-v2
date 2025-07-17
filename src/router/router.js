@@ -717,8 +717,6 @@ router.put("/update/:id", checkAuth, async (req, res) => {
 router.post("/sendEmail", checkAuth, async (req, res) => {
   const {nomeEmail, from, password, to, subject, html, plain} = req.body
 
-  console.log(req.body)
-
   if (!from || !password || !to || !subject || !html || !plain) {
     return res.status(400).json({
       status: "error",
