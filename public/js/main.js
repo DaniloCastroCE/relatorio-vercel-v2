@@ -1225,6 +1225,7 @@ const pesquisa = async (obj) => {
 
       if (response.status === "success") {
         console.log(result.json);
+        alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
       } else {
         console.log("Erro na requisição\n", result);
       }
