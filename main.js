@@ -1226,11 +1226,12 @@ const pesquisa = async (obj) => {
 
       if (result.status === "success") {
         console.log(result.json);
-        alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
+        //alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
       } else {
         console.log("Erro na requisição\n", result);
       }
     }
+    alert("Esta área ainda está em fase de desenvolvimento. Agradecemos sua compreensão.")
     loading("close")
   } catch (err) {
     console.error(`Erro na pesquisa\nErro: ${err}`);
