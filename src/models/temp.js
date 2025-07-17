@@ -6,6 +6,10 @@ const tempSchema = new mongoose.Schema({
     type: Object,
     default: {}
   },
+  emails: {
+    type: String,
+    default: ""
+  },
   itens: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
     default: []

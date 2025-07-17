@@ -6,7 +6,9 @@ const User = require('../models/user')
 const Temp = require('../models/temp')
 const Relatorio = require('../models/relatorio')
 const validator = require("validator")
+const nodemailer = require("nodemailer")
 const { setDateNowInputBrazil } = require('../utils/dataNowInput')
+const {formatar_nome} = require("../utils/FormatName")
 
 const checkAuth = (req, res, next) => {
   if (req.session.user) {
@@ -32,6 +34,7 @@ router.get("/getUser", checkAuth, async (req, res) => {
   req.session.user.nome_plantao = usuario.temp.nome_plantao;
   req.session.user.dia_plantao = usuario.temp.dia_plantao;
   req.session.user.saved = usuario.temp.saved;
+  req.session.user.emails = usuario.temp.emails;
 
   if (!req.session.user) {
     return res.status(401).json({
@@ -648,6 +651,7 @@ router.post("/login", async (req, res) => {
       id: usuario._id,
       nome: usuario.nome,
       email: usuario.email,
+      emails: usuario.temp.emails,
       meu_plantao: usuario.plantao,
       nome_plantao: usuario.temp.nome_plantao,
       dia_plantao: usuario.temp.itens.length === 0 ? new Date().toISOString().split('T')[0] : usuario.temp.dia_plantao,
@@ -709,6 +713,83 @@ router.put("/update/:id", checkAuth, async (req, res) => {
     });
   }
 });
+
+router.post("/sendEmail", checkAuth, async (req, res) => {
+  const {nomeEmail, from, password, to, subject, html, plain} = req.body
+
+  console.log(req.body)
+
+  if (!from || !password || !to || !subject || !html || !plain) {
+    return res.status(400).json({
+      status: "error",
+      message: "É necessario preencher todos os campos !"
+    })
+  }
+
+  try{
+    const transporter = nodemailer.createTransport({
+      host: 'mail.locktec.com.br',
+      auth: {
+        user: from,
+        pass: password
+      },
+      tls: {
+        rejectUnauthorized: false 
+      }
+    })
+
+    const info = await transporter.sendMail({
+      from: `"${formatar_nome(nomeEmail.trim())}" <${from}>`,
+      to,
+      subject,
+      text: plain,
+      html,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Email enviado com sucesso",
+      info,
+    })
+    
+  }catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: `Email não enviado!\nVerifique se seu o email da locktec (${from}) ou senha está correto.`,
+      error: err.message
+    })
+  }
+})
+
+router.post("/updateEmails", checkAuth, async (req, res) => {
+  const user = req.session.user || null
+  const {emails} = req.body
+
+  try {
+    const temp = await Temp.findById(user.temp_id)
+
+    if(emails && temp) {
+      temp.emails = emails
+      await temp.save()
+      return res.status(200).json({
+        status: "success",
+        message: "Emails atualizados com sucesso !"
+      })
+    }else {
+      return res.status(404).json({
+        status: "error",
+        message: "Não existe temp ou emails !"
+      })
+    }
+    
+  }catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erro interno !",
+      error: err.message
+    })
+  }
+})
 
 router.post("/dev/updateSenha", async (req, res) => {
   const { email, novaSenha } = req.body

@@ -1,15 +1,21 @@
 var itens = { count: 0, ativo: false };
-let usuario = null
-const formatName = new FormatName()
+let usuario = null;
+const formatName = new FormatName();
 
 const getUser = async () => {
   try {
-    const response = await fetch("/getUser")
-    const result = await response.json()
-    if (result.status === 'success') {
-      document.title = `${formatName.type_one(result.user.nome)} - Relatório de Maracanaú`
-      document.querySelector('#user-nome').textContent = formatName.type_one(result.user.nome)
-      document.querySelector('#user-email').textContent = result.user.email
+    const response = await fetch("/getUser");
+    const result = await response.json();
+    if (result.status === "success") {
+      document.title = `${formatName.type_one(result.user.nome)} - Relatório de Maracanaú`;
+      document.querySelector("#user-nome").textContent = formatName.type_one(
+        result.user.nome,
+      );
+      document.querySelector("#user-email").textContent = result.user.email;
+
+      document.querySelector("#nomeEmail").value = formatName.type_one(result.user.nome)
+      document.querySelector("#from").value = result.user.email ;
+      document.querySelector("#to").value = result.user.emails ? result.user.emails : "";
 
       usuario = {
         id: result.user.id,
@@ -17,17 +23,16 @@ const getUser = async () => {
         email: result.user.email,
         nome_plantao: result.user.nome_plantao,
         dia_plantao: result.user.dia_plantao,
-        saved: result.user.saved
-      }
+        saved: result.user.saved,
+      };
 
-      console.log(usuario)
+      console.log(usuario);
     }
-
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
-}
-getUser()
+};
+getUser();
 
 const resizeObserver = new ResizeObserver((entries) => {
   for (let entry of entries) {
@@ -36,7 +41,6 @@ const resizeObserver = new ResizeObserver((entries) => {
   }
 });
 resizeObserver.observe(document.querySelector(".header"));
-
 
 const loading = (op) => {
   const loading = document.querySelector(".loading");
@@ -58,7 +62,7 @@ const initAddCountItensToLogo = async () => {
       itens.ativo = true;
     }
 
-    console.log(usuario)
+    console.log(usuario);
   } catch (error) {
     console.error(`Erro na função addCountItensToLogo: ${error}`);
     itens.count = 0;
@@ -77,33 +81,32 @@ const periodoDoDia = () => {
   } else {
     return "Boa noite";
   }
-}
+};
 
 const tela_inicial = async () => {
   try {
-    const response = await fetch("/checkLista")
-    const result = await response.json()
+    const response = await fetch("/checkLista");
+    const result = await response.json();
 
-    if (result.status === 'error') {
-      const section_init = document.querySelector('.section-init')
-      const tela_inicial = document.querySelector('.tela-inicial')
-      section_init.classList.remove('display-none')
+    if (result.status === "error") {
+      const section_init = document.querySelector(".section-init");
+      const tela_inicial = document.querySelector(".tela-inicial");
+      section_init.classList.remove("display-none");
 
       if (result && result.nome) {
         tela_inicial.children[0].textContent = `${periodoDoDia()} ${formatName.type_one(result.nome)}!`;
       } else {
         tela_inicial.children[0].textContent = `${periodoDoDia()}!`;
       }
-
     } else {
-      clickMenu('nav-list')
+      clickMenu("nav-list");
     }
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
-}
+};
 
-tela_inicial()
+tela_inicial();
 
 initAddCountItensToLogo();
 
@@ -192,10 +195,9 @@ const toggleMenu = () => {
 };
 
 const clickMenu = (id) => {
-
-  document.querySelectorAll('.itens-section').forEach((el => {
-    el.classList.add("display-none")
-  }))
+  document.querySelectorAll(".itens-section").forEach((el) => {
+    el.classList.add("display-none");
+  });
 
   switch (id) {
     case "nav-add":
@@ -214,8 +216,9 @@ const clickMenu = (id) => {
       }
       break;
     case "nav-reports":
-      const relatorios = document.querySelector('.relatorios')
-      relatorios.classList.remove("display-none")
+      const relatorios = document.querySelector(".relatorios");
+      relatorios.classList.remove("display-none");
+      break;
 
     default:
       break;
@@ -253,7 +256,7 @@ const convertForm = (idForm, radios) => {
 
   radios.forEach((radioName) => {
     const selecionado = form.querySelector(
-      `input[name="${radioName}"]:checked`
+      `input[name="${radioName}"]:checked`,
     );
     if (selecionado) {
       inpValue[radioName] = {
@@ -267,9 +270,9 @@ const convertForm = (idForm, radios) => {
 };
 
 const convertAllItensFromDbToPrevious = (array) => {
-  let itens = []
+  let itens = [];
 
-  array = array.map(item => ({
+  array = array.map((item) => ({
     contato: item.contato,
     envio: item.envio,
     exec: item.exec,
@@ -277,14 +280,14 @@ const convertAllItensFromDbToPrevious = (array) => {
     nome: item.nome,
     obs: item.obs,
     os: item.os,
-    zona: item.zona
+    zona: item.zona,
   }));
 
-  array.forEach(item => {
-    itens.push(convertFromBancoToPrevious(item))
-  })
-  return itens
-}
+  array.forEach((item) => {
+    itens.push(convertFromBancoToPrevious(item));
+  });
+  return itens;
+};
 
 const convertFromBancoToPrevious = (item) => {
   let ItemList = {};
@@ -377,7 +380,7 @@ const editPrevious = (ItemList) => {
         } else {
           ItemList.obs.modif = `Observação: ${ItemList.obs.orig.replace(
             /\n/g,
-            "<br>"
+            "<br>",
           )}`;
         }
         break;
@@ -470,7 +473,6 @@ const addItemToListPrevious = (idInputs, id) => {
 };
 addItemToListPrevious("formInputs");
 
-
 const getAllOS_part = (status, result, error) => {
   const lista_edit = document.querySelector(`#lista-edit`);
 
@@ -500,11 +502,12 @@ const getAllOS_part = (status, result, error) => {
           <!--<button type="button" onclick="copyListPrevious()">Copiar</button>-->
           <button type="button" onclick="salvarRelatorio()">Salvar Lista</button>
           <button type="button" onclick="limparList()">Nova Lista</button>
+          <button type="button" onclick="enviar_email()">Enviar Email</button>
         </div>
       </div>
     </div>
     <div class="espacoLista"></div>
-  `
+  `;
 
   addCountItensToLogo("clear");
   if (status === "success") {
@@ -514,7 +517,7 @@ const getAllOS_part = (status, result, error) => {
           lista_edit,
           item._id,
           item,
-          (index + 1).toString().padStart(2, "0")
+          (index + 1).toString().padStart(2, "0"),
         );
         addCountItensToLogo("+");
       });
@@ -529,7 +532,7 @@ const getAllOS_part = (status, result, error) => {
     }
   } else {
     alert(
-      `Erro ao carregar lista, tente novamente ! \n\nMotivo do erro: ${error}`
+      `Erro ao carregar lista, tente novamente ! \n\nMotivo do erro: ${error}`,
     );
     clickMenu("nav-add");
     addCountItensToLogo();
@@ -553,14 +556,14 @@ const getAllOS = async (callback) => {
       loading("close");
     }
     setTimeout(() => {
-      const div1 = document.querySelector(".container-panel")
-      const div2 = document.querySelector(".espacoLista")
+      const div1 = document.querySelector(".container-panel");
+      const div2 = document.querySelector(".espacoLista");
       const observer = new ResizeObserver(() => {
-        div2.style.height = (div1.offsetHeight + 0) + 'px';
+        div2.style.height = div1.offsetHeight + 0 + "px";
       });
 
       observer.observe(div1);
-    }, 100)
+    }, 100);
   } catch (err) {
     console.error(`Erro: ${err}`);
     loading("close");
@@ -751,7 +754,7 @@ const atualizarItem = async (id, novoItem) => {
     if (!response.ok) {
       throw new Error(`Erro ao atualizar: ${response.statusText}`);
     }
-    getUser()
+    getUser();
   } catch (error) {
     loading("open");
     setTimeout(() => {
@@ -766,9 +769,9 @@ const atualizarItem = async (id, novoItem) => {
 const deletarItem = async (event, id, nome) => {
   event.preventDefault();
 
-  let textSave = ''
-  if (usuario.saved !== 'empty' && usuario.saved !== 'not saved') {
-    textSave = `\n\n⚠️ Ao deletar, o item também será removido do relatório salvo. ⚠️`
+  let textSave = "";
+  if (usuario.saved !== "empty" && usuario.saved !== "not saved") {
+    textSave = `\n\n⚠️ Ao deletar, o item também será removido do relatório salvo. ⚠️`;
   }
 
   if (!confirm(`Deseja realmente deletar o item ${nome}?${textSave}`)) return;
@@ -778,20 +781,18 @@ const deletarItem = async (event, id, nome) => {
     const response = await fetch(`/delete/${id}`, {
       method: "DELETE",
     });
-    
+
     const data = await response.json();
 
     if (response.ok) {
-      getUser()
+      getUser();
       console.log(data.message);
       getAllOS(getAllOS_part);
       addCountItensToLogo("-");
-      
     } else {
       throw new Error(`Erro ao deletar: ${response.statusText}`);
     }
-    loading("close");    
-
+    loading("close");
   } catch (error) {
     setTimeout(() => {
       alert("❌ Erro em cancelar item, tente novamente !");
@@ -817,7 +818,6 @@ const createOS = async (e) => {
     obs: form.obs.value,
   };
 
-
   try {
     const response = await fetch("/create", {
       method: "POST",
@@ -829,28 +829,24 @@ const createOS = async (e) => {
 
     const data = await response.json();
     if (response.ok) {
-      alert(data.message)
-      console.log(data.message)
+      alert(data.message);
+      console.log(data.message);
       form.reset();
       showExistsNome("nulo");
       addItemToListPrevious("formInputs");
-      getUser()
+      getUser();
       addCountItensToLogo("+");
-      
-    } 
-    else {
+    } else {
       if (data.status === "error" && data.message.includes("reloger")) {
-        alert(data.message)
-        window.location.href = "\logout"
-        return
-
+        alert(data.message);
+        window.location.href = "logout";
+        return;
       } else {
-        alert(data.message)
+        alert(data.message);
       }
     }
-    
-    loading("close");
 
+    loading("close");
   } catch (error) {
     setTimeout(() => {
       alert(`❌ Erro ao tentar criar item, tente novamente !`);
@@ -863,30 +859,29 @@ const createOS = async (e) => {
 const salvarRelatorio = async () => {
   loading("open");
   try {
-    const response = await fetch('/salvar', {
-      method: 'PUT',
+    const response = await fetch("/salvar", {
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         dia_plantao: usuario.dia_plantao,
         nome_plantao: usuario.plantao,
-      })
-    })
+      }),
+    });
 
-    const result = await response.json()
+    const result = await response.json();
 
-    if (result.status === 'success') copyListPrevious()
-    getUser()
+    if (result.status === "success") copyListPrevious();
+    getUser();
 
-    alert(`${result.message}`)
+    alert(`${result.message}`);
     loading("close");
-
   } catch (err) {
-    console.error(err)
+    console.error(err);
     loading("close");
   }
-}
+};
 
 const copyListPrevious = async () => {
   //loading("open");
@@ -894,7 +889,7 @@ const copyListPrevious = async () => {
     const response = await fetch("/getAll");
     if (!response.ok) {
       throw new Error(
-        `Erro ao tentar copiar relatorio: ${response.statusText}`
+        `Erro ao tentar copiar relatorio: ${response.statusText}`,
       );
     }
 
@@ -903,7 +898,7 @@ const copyListPrevious = async () => {
 
     if (list.length <= 0) {
       alert(
-        "Não existe itens no relatório para serem copiados !\nRegistre ocorrências na aba TO ADD."
+        "Não existe itens no relatório para serem copiados !\nRegistre ocorrências na aba TO ADD.",
       );
       //loading("close");
       return;
@@ -911,15 +906,14 @@ const copyListPrevious = async () => {
 
     const previous = list.map((item) => convertFromBancoToPrevious(item));
 
-    let textDia = ''
+    let textDia = "";
     try {
-      const [ano, mes, dia] = usuario.dia_plantao.split('-')
+      const [ano, mes, dia] = usuario.dia_plantao.split("-");
       const dataBR = `${dia}/${mes}/${ano}`;
 
-      textDia = `do dia ${dataBR} - Plantão ${formatName.type_one(usuario.nome_plantao)}`
-
+      textDia = `do dia ${dataBR} - Plantão ${formatName.type_one(usuario.nome_plantao)}`;
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
 
     const fontSizeRest = "12pt";
@@ -1063,54 +1057,66 @@ const copyListPrevious = async () => {
         }),
       ]);
       //alert("✅ Relatório copiada com sucesso !");
-      console.log("✅ Relatório copiada com sucesso !")
+      console.log("✅ Relatório copiada com sucesso !");
       //loading("close");
+      return {
+        status: "success",
+        message: "✅ Relatório copiada com sucesso !",
+        html: htmlContent,
+        plain: plainText,
+      };
     } catch (err) {
       //alert("❌ Erro ao copiar: " + err);
-      console.error("❌ Erro ao copiar: " + err)
+      console.error("❌ Erro ao copiar: " + err);
       //loading("close");
+      return {
+        status: "error",
+        message: "❌ Erro ao copiar: " + err,
+      };
     }
   } catch (error) {
     setTimeout(() => {
       //alert("❌ Erro ao tentar copiar relatório !");
-      console.log("❌ Erro ao tentar copiar relatório !")
+      console.log("❌ Erro ao tentar copiar relatório !");
       //loading("close");
     }, 2000);
   }
 };
 
 const limparList = async () => {
-  let textSave = ''
+  let textSave = "";
   loading("open");
   try {
-    const resCheckLista = await fetch("/checkLista")
-    const resultCheckList = await resCheckLista.json()
+    const resCheckLista = await fetch("/checkLista");
+    const resultCheckList = await resCheckLista.json();
 
     if (!resultCheckList.pass) {
-      alert(resultCheckList.message)
+      alert(resultCheckList.message);
       loading("close");
-      return
+      return;
     }
-
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 
-  if (usuario.saved === 'not saved') {
+  if (usuario.saved === "not saved") {
     textSave = `\n 
     ❗OBS: Identifiquei que você não salvou a lista.❗\n
-    Se apertar em "OK", não vai conseguir recuperar a lista de OS atual! \n`
-
+    Se apertar em "OK", não vai conseguir recuperar a lista de OS atual! \n`;
   } else if (usuario.saved === "update") {
     textSave = `\n 
     ❗OBS: Identifiquei que você atualizou a lista, mas não salvou ela.❗\n
-    Se apertar em "OK", vai perder o restante da lista que você ainda não salvou ! \n`
+    Se apertar em "OK", vai perder o restante da lista que você ainda não salvou ! \n`;
   }
 
-  if (!confirm(`⚠️ Tem certeza que deseja deletar a lista de OS atual para criar uma nova ? ⚠️${textSave}`)) {
-    loading("close")
-    return
-  };
+  if (
+    !confirm(
+      `⚠️ Tem certeza que deseja deletar a lista de OS atual para criar uma nova ? ⚠️${textSave}`,
+    )
+  ) {
+    loading("close");
+    return;
+  }
 
   try {
     const response = await fetch(`/deleteAll`, { method: "DELETE" });
@@ -1130,10 +1136,9 @@ const limparList = async () => {
     addCountItensToLogo("clear");
 
     getUser().then(() => {
-      document.querySelector("#inpNomePlantao").value = usuario.nome_plantao
-      document.querySelector("#inpDiaPlantao").value = usuario.dia_plantao
-    })
-
+      document.querySelector("#inpNomePlantao").value = usuario.nome_plantao;
+      document.querySelector("#inpDiaPlantao").value = usuario.dia_plantao;
+    });
   } catch (error) {
     setTimeout(() => {
       alert("❌ Erro ao tenter deletar lista, tente novamente !");
@@ -1184,54 +1189,131 @@ const scrollToBottom = () => {
   }
 };
 
-
 const mudarPlantao = async (obj) => {
-  let op
+  let op;
   if (obj.id === "inpNomePlantao") {
-    usuario.nome_plantao = obj.value
-    op = "name"
+    usuario.nome_plantao = obj.value;
+    op = "name";
   } else if (obj.id === "inpDiaPlantao") {
-    usuario.dia_plantao = obj.value
-    op = "dia"
+    usuario.dia_plantao = obj.value;
+    op = "dia";
   }
 
   try {
     const response = await fetch(`/updateNameAndDay/${op}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ plantao: obj.value.trim() }),
-    })
+    });
 
-    const result = await response.json()
+    const result = await response.json();
 
-    console.log(result)
+    console.log(result);
   } catch (err) {
-    console.error(err)
+    console.error(err);
+  }
+};
+
+const pesquisa = async (obj) => {
+  try {
+    if (obj.id === "my-reports") {
+      const response = await fetch(`/api/get-infoUser/${usuario.email}`);
+
+      const result = await response.json();
+
+      if (response.status === "success") {
+        console.log(result.json);
+      } else {
+        console.log("Erro na requisição\n", result);
+      }
+    }
+  } catch (err) {
+    console.error(`Erro na pesquisa\nErro: ${err}`);
+  }
+};
+
+const enviar_email = () => {
+  const send_email = document.querySelector(".send-email-container");
+
+  let textDia = "";
+  try {
+    const [ano, mes, dia] = usuario.dia_plantao.split("-");
+    const dataBR = `${dia}/${mes}/${ano}`;
+
+    textDia = `Relatório de Acionamentos de Maracanaú do dia ${dataBR} - Plantão ${formatName.type_one(usuario.nome_plantao)}`;
+
+    document.querySelector("#subject").value = textDia;
+
+    if (send_email.classList.contains("display-none")) {
+      send_email.classList.remove("display-none");
+    } else {
+      send_email.classList.add("display-none");
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const onsubmit_sendEmail = async (e) => {
+  e.preventDefault();
+  loading("open");
+  try {
+    const copy = await copyListPrevious();
+    const data = {
+      nomeEmail: document.getElementById('nomeEmail').value,
+      from: document.getElementById('from').value,
+      password: document.getElementById('password').value,
+      to: document.getElementById('to').value,
+      subject: document.getElementById('subject').value,
+    };
+  
+    const res = await fetch('/sendEmail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        {
+          nomeEmail: data.nomeEmail,
+          from: data.from,
+          password: data.password,
+          to: data.to,
+          subject: data.subject,
+          html: copy.html,
+          plain: copy.plain,
+        }
+      )
+    });
+    const result = await res.json();
+    alert(result.message);
+    document.querySelector("#password").value = "";
+    enviar_email()
+    loading("close");
+  }catch (err){
+    console.error("error: ", err)
+    enviar_email()
+    loading("close");
   }
 }
 
+const updateEmails = async (el) => {
+  const emails = el.value
 
-const pesquisa = async (obj) => {
-
-  try {
-
-    if(obj.id === "my-reports"){
-      const response = await fetch(`/api/get-infoUser/${usuario.email}`)
+  try{
   
-      const result = await response.json()
-  
-      if(response.status === "success"){
-        console.log(result.json)
-      }else {
-        console.log("Erro na requisição\n",result)
-      }
-    }
+    const response = await fetch(`/updateEmails`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({emails}),
+    });
 
-
-  } catch (err) {
-    console.error(`Erro na pesquisa\nErro: ${err}`)
+    const result = await response.json();
+    console.log(result.message)
+   
+  }catch(err){
+    console.error("Emails não atualizou\nErro: ",err)
   }
-
 }

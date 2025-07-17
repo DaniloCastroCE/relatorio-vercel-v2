@@ -1,0 +1,34 @@
+.tooltip {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  background: rgba(0,0,0,0.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  max-width: 320px;
+  width: max-content;
+  white-space: normal;
+  overflow-wrap: break-word;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(5px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.input-wrapper input:hover + .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+
+.input-wrapper input:focus + .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}

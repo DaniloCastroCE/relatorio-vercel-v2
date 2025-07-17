@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="./css/footer.css">
     <link rel="stylesheet" href="./css/reset.css">
     <link rel="stylesheet" href="./css/relatorios.css">
+    <link rel="stylesheet" href="./css/send-email.css">
+    <link rel="stylesheet" href="./css/tooltip.css">
 </head>
 
 <body>
@@ -55,6 +57,39 @@
             <div class="loading-content">
                 <img src="../img/dog-loading.gif" alt="dog loading">
                 <p>Aguarde . . .</p>
+            </div>
+        </section>
+        <section class="send-email-container display-none">
+            <div class="send-email-content form-container">
+                <h1>Enviar Email</h1>
+                <form id="formSendEmail" onsubmit="onsubmit_sendEmail(event)">
+                    <div class="form-group">
+                        <label for="nomeEmail">Nome</label>
+                        <input class="inputEmail" type="text" name="nomeEmail" id="nomeEmail" placeholder="Digite seu nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="from">De</label>
+                        <input type="text" name="from" id="from" placeholder="Digite seu email da locktec" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input type="password" name="password" id="password" placeholder="Senha do e-mail" required>
+                    </div>
+                    <div class="form-group input-wrapper">
+                        <label for="to">Para</label>
+                        <input type="text" name="to" id="to" placeholder="Para" onchange="updateEmails(this)" required>
+                        <div class="tooltip"></div>
+                    </div>
+                    <div class="form-group input-wrapper">
+                        <label for="subject">Assunto</label>
+                        <input type="text" name="subject" id="subject" required>
+                        <div class="tooltip"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">Enviar</button>
+                        <button type="button" onclick="enviar_email()">Cancelar</button>
+                    </div>
+                </form>
             </div>
         </section>
         <section class="section-init display-none itens-section">
@@ -207,6 +242,7 @@
     </main>
     <footer>Desenvolvido por: @DaniloCastroCE (2025)</footer>
     <script src="./js/FormatName.js"></script>
+    <script src="./js/tooltip.js"></script>
     <script src="./js/main.js"></script>
 </body>
 

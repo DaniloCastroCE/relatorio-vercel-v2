@@ -261,6 +261,7 @@ main {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  gap: 20px;
 }
 
 .form-actions button {
@@ -415,6 +416,10 @@ main {
 .control-panel input {
   text-transform: uppercase;
   width: 150px;
+}
+
+#inpDiaPlantao {
+  width: 130px;
 }
 
 .control-panel .controlBtns {
