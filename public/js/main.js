@@ -958,7 +958,7 @@ const copyListPrevious = async () => {
                 width: fit-content;
                 min-width: 400px;
                 max-width: 600px;
-                line-height: 1.5;
+                /*line-height: 1.5;*/
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             `;
 
